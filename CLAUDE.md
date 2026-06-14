@@ -18,47 +18,59 @@ prototype.html                        # Static HTML prototype (design reference)
 
 **Storage strategy**: Large files (PDFs, reviews) go to IPFS → only CIDs + metadata (score, address, timestamp) stored on-chain. This keeps gas costs low.
 
-**Smart contract** (`AcadShield.sol`): Inherits OpenZeppelin `AccessControl` + `ReentrancyGuard`. Three roles (`STUDENT_ROLE`, `REVIEWER_ROLE`, `ADMIN_ROLE`) enforce RBAC. State machine: `NOT_SUBMITTED → SUBMITTED → UNDER_REVIEW → FINALIZED`. Key functions: `submitThesis(cid)`, `reviewThesis(id, score, reviewCID)`, `finalizeGrade(id)`.
+**Smart contract** (`AcadShield.sol`): Inherits OpenZeppelin `AccessControl` + `ReentrancyGuard`. Three roles (`STUDENT_ROLE`, `REVIEWER_ROLE`, `ADMIN_ROLE`) enforce RBAC. Four-state machine: `NOT_SUBMITTED → SUBMITTED → UNDER_REVIEW → FINALIZED` with `REJECTED` as a terminal state from either `SUBMITTED` or `UNDER_REVIEW`. Key functions: `submitThesis(cid)`, `reviewThesis(id, score, reviewCID)`, `finalizeGrade(id)`, `rejectThesis(id)`.
 
-**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue and Ant Design Web3 for wallet connection. `composables/useWeb3.js` wraps ethers.js v6 for contract interaction. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize panel).
+**Review model**: Single reviewer per thesis (first-come-first-served). Any `REVIEWER_ROLE` holder can review any `SUBMITTED` thesis. Only a `uint8` total score is stored on-chain; the four dimension scores (选题/创新/实现/写作) are UI-only.
+
+**Student submissions**: Students can submit multiple theses (stored in `studentTheses[address]` array), each receiving a unique `thesisId`.
+
+**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue and Ant Design Web3 for wallet connection. `composables/useWeb3.js` wraps ethers.js v6 for contract interaction. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize/reject panel). AdminView listens to contract events (`ThesisSubmitted`, `ThesisReviewed`, `GradeFinalized`, `ThesisRejected`) for real-time updates.
 
 ## Common Commands
 
 ### Contract project (`acadshield-thesis-review-contract/`)
 ```bash
 npm install
-npx hardhat compile          # Compile Solidity
-npx hardhat test             # Run all unit tests (≥8 test cases)
-npx hardhat node             # Start local Hardhat node
-npx hardhat run scripts/deploy.js  # Deploy to local network
+npm run compile              # or: npx hardhat compile
+npm test                     # or: npx hardhat test (≥16 test cases)
+npm run node                 # or: npx hardhat node (local blockchain)
+npm run deploy               # or: npx hardhat run scripts/deploy.js
 ```
 
 ### Frontend project (`acadshield-thesis-review-frontend/`)
 ```bash
 npm install
-npm run dev                  # Start Vite dev server
+npm run dev                  # Start Vite dev server (port 5173)
 npm run build                # Production build
+npm run preview              # Preview production build
 ```
 
-## Design Conventions (from prototype.html)
+## Design Conventions
 
 - **Color palette**: Dark ink `#0F172A` (primary), warm paper `#F5F1E8` (background), blue accent `#1E3A8A`
-- **Typography**: Noto Serif SC for Chinese headings/data, Inter for Latin/body, SF Mono for hashes/addresses
+- **Typography**: Noto Serif SC for Chinese headings/data, Inter for Latin/body, JetBrains Mono for hashes/addresses (loaded via Google Fonts in `index.html`)
 - **Layout**: No card-heavy stacking; use typography and `border-bottom` dividers between sections
-- **Status badges**: Blue (`#DBEAFE`/`#1E40AF`) = SUBMITTED, Yellow (`#FEF3C7`/`#92400E`) = UNDER_REVIEW, Green (`#DCFCE7`/`#166534`) = FINALIZED
+- **Status badges** (defined in `App.vue` global styles and `RoleBadge.vue`):
+  - SUBMITTED: Blue (`#DBEAFE`/`#1E40AF`) — state `1`
+  - UNDER_REVIEW: Yellow (`#FEF3C7`/`#92400E`) — state `2`
+  - FINALIZED: Green (`#DCFCE7`/`#166534`) — state `3`
+  - REJECTED: Red (`#FEE2E2`/`#991B1B`) — state `4`
 - **Score display**: Large serif numerals (96px) in the reviewer scoring panel
 
 ## Key Contract Events
 
-Frontend should listen to these for real-time updates:
+Frontend listens to these (set up in `AdminView.vue` `setupEventListener()`):
 - `ThesisSubmitted(thesisId, submitter, thesisCID, timestamp)`
 - `ThesisReviewed(thesisId, reviewer, score, reviewCID)`
 - `GradeFinalized(thesisId, finalScore)`
+- `ThesisRejected(thesisId, admin, timestamp)`
 
 ## Development Notes
 
-- The contract ABI is exported to `acadshield-thesis-review-frontend/src/abi/AcadShield.json` after compilation/deployment
+- The contract ABI must be exported to `acadshield-thesis-review-frontend/src/abi/AcadShield.json` after compilation/deployment (this file does not exist yet — generate it via the deploy script)
 - Two projects are independent — each has its own `package.json`; they do not share dependencies
 - The deploy script auto-assigns roles (STUDENT/REVIEWER/ADMIN) to test accounts
-- IPFS is simulated locally during development (generate mock CIDs)
+- IPFS is simulated locally during development — `Qm` + random base58 string generates mock CIDs
 - All UI text is in Chinese (zh-CN)
+- Contract project uses Solidity 0.8.24 with Hardhat (chainId 31337)
+- Frontend uses Ant Design of Vue 4.x with global registration in `main.js`

@@ -17,7 +17,18 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import AppHeader from './components/AppHeader.vue'
+import { useWeb3 } from './composables/useWeb3'
+
+const { reconnectWallet } = useWeb3()
+
+onMounted(async () => {
+  // 页面加载时静默重连已授权的钱包
+  if (localStorage.getItem('acadshield_wallet_connected')) {
+    await reconnectWallet()
+  }
+})
 </script>
 
 <style>

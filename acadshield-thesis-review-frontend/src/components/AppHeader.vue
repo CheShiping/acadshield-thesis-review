@@ -36,10 +36,9 @@
           <a-button
             v-if="!isConnected"
             type="primary"
-            @click="handleConnect"
-            :loading="connecting"
+            @click="walletModalOpen = true"
           >
-            连接 MetaMask
+            连接钱包
           </a-button>
           <a-dropdown v-else>
             <a-button>
@@ -58,6 +57,11 @@
       </div>
     </div>
   </a-layout-header>
+
+  <WalletModal
+    :open="walletModalOpen"
+    @close="walletModalOpen = false"
+  />
 </template>
 
 <script setup>
@@ -66,11 +70,12 @@ import { useRoute } from 'vue-router'
 import { DownOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useWeb3 } from '../composables/useWeb3'
+import WalletModal from './WalletModal.vue'
 
 const route = useRoute()
-const { isConnected, userRole, shortAddress, connectWallet, disconnectWallet } = useWeb3()
+const { isConnected, userRole, shortAddress, disconnectWallet } = useWeb3()
 
-const connecting = ref(false)
+const walletModalOpen = ref(false)
 const selectedKeys = ref(['home'])
 
 watch(
@@ -101,18 +106,6 @@ const roleLabel = computed(() => {
     default: return '未知角色'
   }
 })
-
-const handleConnect = async () => {
-  connecting.value = true
-  try {
-    await connectWallet()
-    message.success('钱包连接成功')
-  } catch (error) {
-    message.error('连接失败: ' + error.message)
-  } finally {
-    connecting.value = false
-  }
-}
 
 const handleDisconnect = () => {
   disconnectWallet()

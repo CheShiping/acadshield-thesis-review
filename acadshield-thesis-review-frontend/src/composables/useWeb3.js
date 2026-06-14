@@ -1,11 +1,13 @@
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 import { ethers } from 'ethers'
 import contractData from '../abi/AcadShield.json'
 
-const provider = ref(null)
-const signer = ref(null)
+const STORAGE_KEY = 'acadshield_wallet_connected'
+
+const provider = shallowRef(null)
+const signer = shallowRef(null)
 const account = ref(null)
-const contract = ref(null)
+const contract = shallowRef(null)
 const isConnected = ref(false)
 const userRole = ref(null)
 
@@ -14,14 +16,18 @@ const REVIEWER_ROLE = ethers.keccak256(ethers.toUtf8Bytes('REVIEWER_ROLE'))
 const ADMIN_ROLE = ethers.keccak256(ethers.toUtf8Bytes('ADMIN_ROLE'))
 
 export function useWeb3() {
-  const connectWallet = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      throw new Error('Please install MetaMask')
+  const connectWallet = async (ethereumProvider) => {
+    const eth = ethereumProvider || window.ethereum
+    if (!eth) {
+      throw new Error('未检测到钱包，请安装 MetaMask 或其他钱包插件')
     }
 
     try {
-      provider.value = new ethers.BrowserProvider(window.ethereum)
-      await provider.value.send('eth_requestAccounts', [])
+      provider.value = new ethers.BrowserProvider(eth)
+      // wallet_requestPermissions 强制弹出 MetaMask 账号选择框
+      await provider.value.send('wallet_requestPermissions', [
+        { eth_accounts: {} },
+      ])
       signer.value = await provider.value.getSigner()
       account.value = await signer.value.getAddress()
 
@@ -32,10 +38,57 @@ export function useWeb3() {
       )
 
       isConnected.value = true
+      localStorage.setItem(STORAGE_KEY, 'true')
+      listenAccountsChanged(eth)
       await detectRole()
     } catch (error) {
       console.error('Failed to connect wallet:', error)
       throw error
+    }
+  }
+
+  // 静默重连（不弹窗，页面刷新时调用）
+  const reconnectWallet = async () => {
+    const eth = window.ethereum
+    if (!eth) return
+
+    try {
+      // eth_accounts 静默获取已授权的账号，不弹窗
+      const accounts = await eth.request({ method: 'eth_accounts' })
+      if (!accounts || accounts.length === 0) return
+
+      provider.value = new ethers.BrowserProvider(eth)
+      signer.value = await provider.value.getSigner()
+      account.value = await signer.value.getAddress()
+
+      contract.value = new ethers.Contract(
+        contractData.address,
+        contractData.abi,
+        signer.value
+      )
+
+      isConnected.value = true
+      listenAccountsChanged(eth)
+      await detectRole()
+    } catch (error) {
+      console.error('Failed to reconnect:', error)
+      clearConnection()
+    }
+  }
+
+  const listenAccountsChanged = (eth) => {
+    if (!eth?.on) return
+    // 移除旧监听避免重复
+    eth.removeListener('accountsChanged', handleAccountsChanged)
+    eth.on('accountsChanged', handleAccountsChanged)
+  }
+
+  const handleAccountsChanged = (accounts) => {
+    if (!accounts || accounts.length === 0) {
+      disconnectWallet()
+    } else {
+      // 账号切换，重新连接
+      reconnectWallet()
     }
   }
 
@@ -68,13 +121,18 @@ export function useWeb3() {
     }
   }
 
-  const disconnectWallet = () => {
+  const clearConnection = () => {
     provider.value = null
     signer.value = null
     account.value = null
     contract.value = null
     isConnected.value = false
     userRole.value = null
+  }
+
+  const disconnectWallet = () => {
+    clearConnection()
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   const submitThesis = async (thesisCID) => {
@@ -130,6 +188,7 @@ export function useWeb3() {
     userRole,
     shortAddress,
     connectWallet,
+    reconnectWallet,
     disconnectWallet,
     submitThesis,
     reviewThesis,
