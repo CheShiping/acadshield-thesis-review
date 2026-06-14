@@ -1,0 +1,88 @@
+# Tasks
+
+## 阶段一：基础设施搭建与合约开发
+
+- [ ] Task 1: 初始化合约项目 `acadshield-thesis-review-contract/`
+  - [ ] SubTask 1.1: 创建目录 `acadshield-thesis-review-contract/`，初始化 `package.json`（独立 Hardhat 项目）
+  - [ ] SubTask 1.2: 安装 hardhat、@openzeppelin/contracts、@nomicfoundation/hardhat-toolbox
+  - [ ] SubTask 1.3: 创建 `hardhat.config.js`，配置本地测试网（Hardhat Network）
+  - [ ] SubTask 1.4: 创建子目录 `contracts/`、`test/`、`scripts/`
+
+- [ ] Task 2: 编写 AcadShield.sol 智能合约
+  - [ ] SubTask 2.1: 定义角色常量（`STUDENT_ROLE`、`REVIEWER_ROLE`、`ADMIN_ROLE`）和状态枚举（`NOT_SUBMITTED`、`SUBMITTED`、`UNDER_REVIEW`、`FINALIZED`）
+  - [ ] SubTask 2.2: 实现数据结构（`Thesis` struct、映射 `theses`、学生提交计数器）
+  - [ ] SubTask 2.3: 实现构造函数，授予部署者 `ADMIN_ROLE`，预留角色分配接口
+  - [ ] SubTask 2.4: 实现 `submitThesis(string thesisCID)` 函数，包含状态校验和权限检查
+  - [ ] SubTask 2.5: 实现 `reviewThesis(uint256 thesisId, uint8 score, string reviewCID)` 函数
+  - [ ] SubTask 2.6: 实现 `finalizeGrade(uint256 thesisId)` 函数，检查所有评审完成
+  - [ ] SubTask 2.7: 实现查询函数 `getThesisDetails(uint256 thesisId)` 和 `getUserRole(address user)`
+  - [ ] SubTask 2.8: 定义事件 `ThesisSubmitted`、`ThesisReviewed`、`GradeFinalized`
+
+- [ ] Task 3: 编写自动化部署脚本
+  - [ ] SubTask 3.1: 创建 `scripts/deploy.js`，部署 AcadShield 合约
+  - [ ] SubTask 3.2: 部署后自动为测试账号分配 STUDENT_ROLE、REVIEWER_ROLE、ADMIN_ROLE
+  - [ ] SubTask 3.3: 部署后将 ABI 导出至 `../acadshield-thesis-review-frontend/src/abi/AcadShield.json`
+
+## 阶段二：单元测试
+
+- [ ] Task 4: 编写 AcadShield 合约单元测试
+  - [ ] SubTask 4.1: 正向用例 - 学生成功提交论文
+  - [ ] SubTask 4.2: 正向用例 - 导师成功评审论文
+  - [ ] SubTask 4.3: 正向用例 - 教务处成功定稿成绩
+  - [ ] SubTask 4.4: 正向用例 - 完整流程（提交 → 评审 → 定稿）
+  - [ ] SubTask 4.5: 反向用例 - 非学生角色尝试提交（Expect revert）
+  - [ ] SubTask 4.6: 反向用例 - 学生重复提交（Expect revert）
+  - [ ] SubTask 4.7: 反向用例 - 非导师角色尝试评审（Expect revert）
+  - [ ] SubTask 4.8: 反向用例 - 非管理员角色尝试定稿（Expect revert）
+  - [ ] SubTask 4.9: 反向用例 - 已定稿论文尝试再次评审（Expect revert）
+  - [ ] SubTask 4.10: 反向用例 - 未评审完强行定稿（Expect revert）
+
+## 阶段三：前端开发
+
+- [ ] Task 5: 初始化前端项目 `acadshield-thesis-review-frontend/`
+  - [ ] SubTask 5.1: 创建目录 `acadshield-thesis-review-frontend/`，用 Vite 初始化 Vue 3 项目
+  - [ ] SubTask 5.2: 安装 ant-design-vue、@ant-design/web3-vue、ethers、vue-router
+  - [ ] SubTask 5.3: 配置 `main.js` 注册 Ant Design 全局组件
+  - [ ] SubTask 5.4: 配置 Vue Router 四个路由（`/`、`/student`、`/reviewer`、`/admin`）
+  - [ ] SubTask 5.5: 创建 `composables/useWeb3.js`，封装钱包连接 + 合约交互方法
+  - [ ] SubTask 5.6: 创建 `App.vue` 主布局（Ant Design Layout + AppHeader）
+  - [ ] SubTask 5.7: 将合约 ABI 文件放入 `src/abi/AcadShield.json`
+
+- [ ] Task 6: 实现前端页面和组件
+  - [ ] SubTask 6.1: 创建 `AppHeader.vue`（品牌标识 + 导航链接 + Ant Design Web3 Connector 钱包连接）
+  - [ ] SubTask 6.2: 创建 `HomeView.vue`（Hero 区 + Workflow 三步卡片 + Architecture 架构图）—— 对应原型首页
+  - [ ] SubTask 6.3: 创建 `StudentView.vue`（文件上传区 + 文件元数据 + Steps 进度条 + 提交历史表）—— 对应原型学生端
+  - [ ] SubTask 6.4: 创建 `ReviewerView.vue`（论文列表 + 滑杆打分面板 + 评语 + 签名提交）—— 对应原型导师端
+  - [ ] SubTask 6.5: 创建 `AdminView.vue`（四列统计卡 + 论文状态表 + 合约事件日志 + 定稿锁定面板）—— 对应原型教务端
+  - [ ] SubTask 6.6: 创建 `RoleBadge.vue` 角色标识组件（SUBMITTED/UNDER_REVIEW/FINALIZED 三种状态徽章）
+  - [ ] SubTask 6.7: 集成 ethers.js 调用合约方法，使用 Ant Design message 处理交易状态
+  - [ ] SubTask 6.8: 监听合约事件（ThesisSubmitted、GradeFinalized），自动刷新页面数据
+
+## 阶段四：联调与交付
+
+- [ ] Task 7: 端到端联调验证
+  - [ ] SubTask 7.1: 在合约项目中启动本地 Hardhat 节点（`npx hardhat node`）
+  - [ ] SubTask 7.2: 部署合约到本地网络，将 ABI 同步至前端项目
+  - [ ] SubTask 7.3: 前端连接本地网络，测试完整业务流程
+  - [ ] SubTask 7.4: 修复交互 Bug，确保事件监听正常工作
+
+- [ ] Task 8: 项目文档与结构整理
+  - [ ] SubTask 8.1: 确保两个项目各自独立可运行（各自 `npm install` + `npm run dev/test`）
+  - [ ] SubTask 8.2: 编写 README.md（架构图、角色说明、快速启动命令）
+
+---
+
+# Task Dependencies
+
+- Task 2 (合约编写) 依赖 Task 1 (合约项目初始化)
+- Task 3 (部署脚本) 依赖 Task 2 (合约编写)
+- Task 4 (单元测试) 依赖 Task 2 (合约编写)
+- Task 5 (前端初始化) 可与 Task 1 并行（两个项目独立）
+- Task 6 (前端页面) 依赖 Task 5 (前端初始化) 和 Task 2 (合约 ABI)
+- Task 7 (联调验证) 依赖 Task 3、Task 4、Task 6
+- Task 8 (文档整理) 依赖 Task 7 (联调验证)
+
+# 并行策略
+- Task 1~4 (合约侧) 和 Task 5~6 (前端侧) 可并行开发
+- Task 3 和 Task 4 可并行（部署脚本 vs 单元测试互不阻塞）
+- Task 6 内部各视图组件可并行开发

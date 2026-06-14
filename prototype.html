@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>学术盾 AcadShield — 可信毕设评审系统</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F172A;
+    --ink-2: #334155;
+    --muted: #64748B;
+    --line: #E2E8F0;
+    --paper: #F5F1E8;
+    --accent: #1E3A8A;
+    --accent-2: #2563EB;
+    --gold: #B45309;
+    --success: #16A34A;
+    --warn: #D97706;
+    --radius: 2px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: 'Inter', 'Noto Serif SC', sans-serif; color: var(--ink); background: var(--paper); line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'SF Mono', Consolas, monospace; background: #EEF2FF; padding: 2px 6px; border-radius: 3px; color: var(--accent); font-size: 13px; }
+
+  /* ========== LAYOUT ========== */
+  .page { display: none; }
+  .page.active { display: block; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  /* ========== TOP NAV ========== */
+  .nav {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; max-width: 1180px; margin: 0 auto;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700; font-size: 18px; letter-spacing: 0.5px;
+  }
+  .brand-mark {
+    width: 34px; height: 34px; background: var(--ink);
+    display: grid; place-items: center; color: var(--paper);
+    font-family: 'Noto Serif SC', serif; font-weight: 700;
+    border-radius: 4px; font-size: 16px;
+  }
+  .brand-sub { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; }
+
+  .nav-links { display: flex; gap: 4px; }
+  .nav-btn {
+    padding: 8px 16px; font-size: 14px; font-weight: 500;
+    color: var(--ink-2); border-radius: 4px;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .nav-btn:hover { background: #EAF0F6; color: var(--ink); }
+  .nav-btn.active { background: var(--ink); color: var(--paper); }
+
+  .wallet {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border: 1px solid var(--line);
+    border-radius: 4px; background: #fff; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .wallet:hover { border-color: var(--ink); }
+  .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .wallet-addr { font-family: 'SF Mono', Consolas, monospace; color: var(--muted); font-size: 12px; }
+
+  /* ========== ROLE SWITCH (PROTOTYPE ONLY) ========== */
+  .role-switch {
+    background: #fff; border-bottom: 1px solid var(--line);
+    padding: 10px 32px; font-size: 13px; color: var(--muted);
+    display: flex; gap: 12px; align-items: center;
+  }
+  .role-switch label { display: inline-flex; gap: 6px; cursor: pointer; }
+  .role-switch strong { color: var(--ink); }
+
+  /* ========== HERO ========== */
+  .hero { padding: 80px 0 60px; border-bottom: 1px solid var(--line); }
+  .hero-tag {
+    display: inline-block; padding: 4px 12px;
+    border: 1px solid var(--line); border-radius: 100px;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 56px; font-weight: 700; line-height: 1.15;
+    letter-spacing: -1px; margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); border-bottom: 3px solid var(--accent); padding-bottom: 2px; }
+  .hero-lede { font-size: 18px; color: var(--ink-2); max-width: 620px; margin-bottom: 36px; }
+
+  .hero-action { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; font-size: 15px; font-weight: 600;
+    border-radius: 4px; cursor: pointer; border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover { border-color: var(--ink); }
+
+  /* Hero meta strip */
+  .hero-meta {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 48px; margin-top: 60px; padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+  .meta-item .meta-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .meta-item .meta-value { font-size: 28px; font-weight: 700; font-family: 'Noto Serif SC', serif; }
+  .meta-item .meta-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ========== SECTION HEADERS ========== */
+  .section { padding: 72px 0; border-bottom: 1px solid var(--line); }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
+  .section-title { font-family: 'Noto Serif SC', serif; font-size: 32px; font-weight: 600; margin-bottom: 6px; }
+  .section-desc { color: var(--muted); font-size: 15px; }
+  .section-eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 600; }
+
+  /* ========== STUDENT VIEW ========== */
+  .student-layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px; align-items: start; }
+
+  .paper-drop {
+    border: 2px dashed var(--line); padding: 40px 32px; border-radius: 6px;
+    text-align: center; background: #fff;
+  }
+  .paper-drop-icon { font-size: 36px; margin-bottom: 16px; }
+  .paper-drop h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .paper-drop p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .file-info {
+    margin-top: 20px; padding: 16px; background: #F8FAFC;
+    border-radius: 4px; text-align: left; font-size: 13px;
+  }
+  .file-info-row { display: flex; justify-content: space-between; padding: 6px 0; }
+  .file-info-row strong { font-family: 'SF Mono', Consolas, monospace; font-weight: 500; font-size: 12px; color: var(--ink-2); }
+
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 36px 1fr; gap: 16px;
+    padding: 18px 0; border-bottom: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 36px; height: 36px; border: 1px solid var(--line);
+    border-radius: 50%; display: grid; place-items: center;
+    font-size: 14px; font-weight: 600; background: #fff;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .step.done .step-num { background: var(--success); color: #fff; border-color: var(--success); }
+  .step.active .step-num { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .step-body h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .step-body p { font-size: 13px; color: var(--muted); }
+
+  .thesis-table { width: 100%; margin-top: 32px; }
+  .thesis-table th, .thesis-table td {
+    text-align: left; padding: 14px 8px; border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .thesis-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; }
+  .thesis-table td .cid { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: var(--accent); }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+  }
+  .badge-review { background: #FEF3C7; color: #92400E; }
+  .badge-final { background: #DCFCE7; color: #166534; }
+  .badge-sub { background: #DBEAFE; color: #1E40AF; }
+
+  /* ========== REVIEWER VIEW ========== */
+  .reviewer-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; }
+  .review-row {
+    display: grid; grid-template-columns: auto 1fr auto auto; gap: 24px;
+    padding: 24px 28px; background: #fff; align-items: center;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .review-row:hover { background: #F8FAFC; }
+  .review-index { font-family: 'Noto Serif SC', serif; font-size: 32px; font-weight: 600; color: var(--muted); width: 48px; }
+  .review-main h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .review-main p { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .review-main .cid { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: var(--accent); }
+  .review-meta { font-size: 13px; color: var(--ink-2); text-align: right; }
+
+  /* Score panel */
+  .score-panel {
+    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    padding: 36px; margin-top: 32px;
+  }
+  .score-title { font-family: 'Noto Serif SC', serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .score-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+  .score-display { display: grid; grid-template-columns: 1fr 2fr; gap: 32px; align-items: start; }
+  .score-num {
+    font-family: 'Noto Serif SC', serif; font-size: 96px; font-weight: 700;
+    color: var(--accent); line-height: 1; text-align: center;
+    padding: 24px 0; border: 1px solid var(--line); border-radius: 6px; background: var(--paper);
+  }
+  .score-num small { font-size: 18px; color: var(--muted); font-weight: 400; display: block; margin-top: 8px; }
+
+  .score-form { display: flex; flex-direction: column; gap: 20px; }
+  .score-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--ink-2); }
+  .slider-row { display: flex; gap: 14px; align-items: center; }
+  .slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .slider-row .val { font-family: 'Noto Serif SC', serif; font-size: 22px; font-weight: 700; color: var(--accent); width: 50px; text-align: right; }
+  .score-field textarea, .score-field input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px;
+    font-family: inherit; font-size: 14px; background: #fff;
+  }
+  .score-field textarea:focus, .score-field input:focus { outline: none; border-color: var(--ink); }
+
+  /* ========== ADMIN DASHBOARD ========== */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .stat {
+    background: #fff; padding: 32px 28px;
+  }
+  .stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .stat-value { font-family: 'Noto Serif SC', serif; font-size: 44px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+  .stat-sub { font-size: 13px; color: var(--ink-2); }
+  .stat.accent .stat-value { color: var(--accent); }
+  .stat.gold .stat-value { color: var(--gold); }
+
+  .admin-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-top: 40px; align-items: start; }
+
+  .admin-table { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .admin-table th, .admin-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .admin-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 600; background: var(--paper); }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-table td .score-cell { font-family: 'Noto Serif SC', serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+  .admin-table td .name { font-weight: 600; margin-bottom: 2px; }
+  .admin-table td .addr { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--muted); }
+
+  .action-btn {
+    padding: 8px 14px; font-size: 12px; font-weight: 600;
+    border-radius: 4px; border: 1px solid var(--ink); background: #fff;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .action-btn:hover { background: var(--ink); color: var(--paper); }
+  .action-btn:disabled { border-color: var(--line); color: var(--muted); cursor: not-allowed; }
+
+  .admin-side {
+    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    padding: 28px;
+  }
+  .admin-side h3 { font-family: 'Noto Serif SC', serif; font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .admin-side p.sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .tx-log {
+    font-family: 'SF Mono', Consolas, monospace; font-size: 12px;
+    background: #0F172A; color: #94A3B8; padding: 16px; border-radius: 4px;
+    max-height: 240px; overflow-y: auto; line-height: 1.8;
+  }
+  .tx-log .tx { display: flex; gap: 10px; }
+  .tx-log .tx-ok { color: var(--success); }
+  .tx-log .tx-hash { color: #93C5FD; }
+  .tx-log .tx-time { color: #64748B; }
+
+  /* ========== How it works ========== */
+  .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .how-item { background: #fff; padding: 40px 32px; }
+  .how-num { font-family: 'Noto Serif SC', serif; font-size: 14px; color: var(--accent); font-weight: 700; letter-spacing: 2px; margin-bottom: 16px; }
+  .how-item h3 { font-size: 19px; font-weight: 600; margin-bottom: 10px; font-family: 'Noto Serif SC', serif; }
+  .how-item p { font-size: 14px; color: var(--ink-2); line-height: 1.7; }
+  .how-item .hint { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); font-family: 'SF Mono', Consolas, monospace; }
+
+  /* ========== FOOTER ========== */
+  footer { padding: 40px 0; color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ========== ROLE SWITCHER (for prototype preview) ========== -->
+<div class="role-switch">
+  <strong>原型模式 · 切换角色视图：</strong>
+  <label><input type="radio" name="role" value="landing" checked onchange="switchView(this.value)"> 首页</label>
+  <label><input type="radio" name="role" value="student" onchange="switchView(this.value)"> 学生端</label>
+  <label><input type="radio" name="role" value="reviewer" onchange="switchView(this.value)"> 导师端</label>
+  <label><input type="radio" name="role" value="admin" onchange="switchView(this.value)"> 教务端</label>
+</div>
+
+<!-- ========== TOP NAV ========== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-mark">盾</div>
+      <div>
+        <div>学术盾</div>
+        <div class="brand-sub">AcadShield · Thesis Review</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a class="nav-btn active" href="#">工作台</a>
+      <a class="nav-btn" href="#">历史记录</a>
+      <a class="nav-btn" href="#">链上存证</a>
+    </div>
+    <div class="wallet">
+      <span class="wallet-dot"></span>
+      <span>已连接</span>
+      <span class="wallet-addr">0x7A3f...2E9B</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- ==================== LANDING / HERO VIEW ==================== -->
+<!-- ============================================================ -->
+<div class="page active" id="view-landing">
+
+  <section class="hero">
+    <div class="wrap">
+      <span class="hero-tag">Blockchain · Immutable · RBAC</span>
+      <h1>把毕设评审<br/>写进<em>不可篡改</em>的区块。</h1>
+      <p class="hero-lede">论文哈希上链、导师打分透明、教务处一键锁定 —— 学术盾为高校提供从提交到定稿的全流程可信审计。</p>
+
+      <div class="hero-action">
+        <button class="btn btn-primary">连接 MetaMask 开始 →</button>
+        <button class="btn btn-ghost">查阅合约 ABI</button>
+      </div>
+
+      <div class="hero-meta">
+        <div class="meta-item">
+          <div class="meta-label">已存证论文</div>
+          <div class="meta-value">1,284</div>
+          <div class="meta-sub">最后一笔：0x8F3A... 12 秒前</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">评审导师</div>
+          <div class="meta-value">96</div>
+          <div class="meta-sub">REVIEWER_ROLE 已授</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">平均定稿耗时</div>
+          <div class="meta-value">3.2<span style="font-size:18px;color:var(--muted);"> 天</span></div>
+          <div class="meta-sub">从 SUBMITTED → FINALIZED</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">The Workflow</div>
+          <div class="section-title">三步完成链上评审</div>
+          <div class="section-desc">分离式存储策略：大文件存 IPFS，文件哈希存区块链。</div>
+        </div>
+      </div>
+      <div class="how-grid">
+        <div class="how-item">
+          <div class="how-num">— 01 —</div>
+          <h3>学生提交论文</h3>
+          <p>PDF 上传至 IPFS 生成 CID，CID 写入智能合约。同一学生仅能提交一次，状态从 NOT_SUBMITTED 转为 SUBMITTED。</p>
+          <div class="hint">submitThesis(string thesisCID)</div>
+        </div>
+        <div class="how-item">
+          <div class="how-num">— 02 —</div>
+          <h3>导师打分评审</h3>
+          <p>持有 REVIEWER_ROLE 的导师读取待审列表，录入分数与评语哈希。操作写入区块，状态从 SUBMITTED 转为 UNDER_REVIEW。</p>
+          <div class="hint">reviewThesis(uint256 thesisId, uint8 score, string reviewCID)</div>
+        </div>
+        <div class="how-item">
+          <div class="how-num">— 03 —</div>
+          <h3>教务处一键锁定</h3>
+          <p>持有 ADMIN_ROLE 的教务人员确认所有评审完成，调用 finalizeGrade 锁定最终成绩，状态转为 FINALIZED —— 任何人不可修改。</p>
+          <div class="hint">finalizeGrade(uint256 thesisId) → emit GradeFinalized</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="section" style="border-bottom:none;">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Architecture</div>
+          <div class="section-title">技术架构</div>
+          <div class="section-desc">Solidity + Hardhat + OpenZeppelin · Vue 3 + Ant Design · IPFS</div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:40px;font-family:'SF Mono',Consolas,monospace;font-size:13px;line-height:2;color:var(--ink-2);">
+<pre style="white-space:pre-wrap;">
+┌─────────────────────────────────────────────────────────────────────────┐
+│  前端层 (Frontend)                                                       │
+│  · Vite + Vue 3 (Composition API)                                        │
+│  · Ant Design of Vue + Ant Design Web3 (Connector 钱包连接)              │
+│  · ethers.js v6 —— 合约方法调用 / 事件监听                                │
+└──────────────────────────────────┬──────────────────────────────────────┘
+                                   │  Wallet Transaction (MetaMask)
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  合约层 (Smart Contract)                                                 │
+│  contract AcadShield is AccessControl, ReentrancyGuard { ... }          │
+│  · Roles: STUDENT_ROLE | REVIEWER_ROLE | ADMIN_ROLE                      │
+│  · State: NOT_SUBMITTED → SUBMITTED → UNDER_REVIEW → FINALIZED          │
+│  · Events: ThesisSubmitted | ThesisReviewed | GradeFinalized             │
+└──────────────────────────────────┬──────────────────────────────────────┘
+                                   │  on-chain metadata (CID · score · timestamp)
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  文件层 (Off-chain Storage)                                              │
+│  IPFS (或本地模拟)                                                       │
+│  · thesis.pdf  → CID = QmX9...                                         │
+│  · review.txt → CID = QmYk...                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== STUDENT VIEW ========================== -->
+<!-- ============================================================ -->
+<div class="page" id="view-student">
+  <section class="section" style="padding: 56px 0 40px;">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Student · 学生端</div>
+          <div class="section-title">提交你的毕设论文</div>
+          <div class="section-desc">你的 PDF 将上传至 IPFS 生成唯一哈希，随后写入区块链作为不可篡改的时间存证。</div>
+        </div>
+      </div>
+
+      <div class="student-layout">
+        <!-- LEFT: Upload form -->
+        <div>
+          <div class="paper-drop">
+            <div class="paper-drop-icon">📄</div>
+            <h3>拖拽论文 PDF 到此处</h3>
+            <p>或 <a style="color:var(--accent);border-bottom:1px solid var(--accent);cursor:pointer;">点击选择文件</a> · 仅支持 .pdf · 最大 20MB</p>
+
+            <div class="file-info">
+              <div class="file-info-row"><span>文件名</span><strong>毕业设计_终稿.pdf</strong></div>
+              <div class="file-info-row"><span>大小</span><strong>4.82 MB</strong></div>
+              <div class="file-info-row"><span>SHA-256</span><strong style="font-size:11px;">8f3a9e2c...b41d</strong></div>
+              <div class="file-info-row"><span>IPFS CID</span><strong style="font-size:11px;">QmX9k3...7Hd2</strong></div>
+            </div>
+
+            <div style="margin-top: 24px; display:flex; gap: 12px;">
+              <button class="btn btn-primary" style="flex:1;">提交到区块链</button>
+              <button class="btn btn-ghost">取消</button>
+            </div>
+          </div>
+
+          <!-- Submission history -->
+          <div style="margin-top: 40px;">
+            <h3 style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:600;margin-bottom:4px;">我的提交</h3>
+            <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">每份论文的提交时间与哈希均已上链，不可修改。</p>
+
+            <table class="thesis-table" style="margin-top:0;">
+              <thead><tr>
+                <th style="width:80px;">编号</th>
+                <th>论文</th>
+                <th>状态</th>
+                <th>分数</th>
+                <th>区块</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;color:var(--ink-2);">#1284</td>
+                  <td>
+                    <div style="font-weight:600;">基于区块链的高校毕设评审系统</div>
+                    <div class="cid">QmX9k3...7Hd2 · 2026-06-14 10:23</div>
+                  </td>
+                  <td><span class="badge badge-final">FINALIZED</span></td>
+                  <td style="font-family:'Noto Serif SC',serif;font-size:17px;font-weight:700;color:var(--accent);">92</td>
+                  <td style="font-family:'SF Mono',Consolas,monospace;font-size:11px;color:var(--muted);">Blk #48,291</td>
+                </tr>
+                <tr>
+                  <td style="font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;color:var(--ink-2);">#1251</td>
+                  <td>
+                    <div style="font-weight:600;">某项目 —— 已撤回（不计入）</div>
+                    <div class="cid">QmYk4...1FdA · 2026-06-02 14:05</div>
+                  </td>
+                  <td><span class="badge badge-sub">REJECTED</span></td>
+                  <td>—</td>
+                  <td style="font-family:'SF Mono',Consolas,monospace;font-size:11px;color:var(--muted);">Blk #45,103</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RIGHT: Steps -->
+        <div>
+          <h3 style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:600;margin-bottom:6px;">提交进度</h3>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">每一步的状态变更都将触发合约事件，实时同步至所有角色。</p>
+
+          <div class="steps">
+            <div class="step done">
+              <div class="step-num">✓</div>
+              <div class="step-body">
+                <h4>文件上传至 IPFS</h4>
+                <p>论文 PDF 已生成 CID：<code style="background:#fff;">QmX9k3...7Hd2</code></p>
+              </div>
+            </div>
+            <div class="step active">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h4>等待 MetaMask 签名上链</h4>
+                <p>确认 STUDENT_ROLE 权限，写入 thesisCID · submitter · timestamp</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h4>导师评审（1 人 / 或 3 人平均）</h4>
+                <p>状态将从 SUBMITTED 转为 UNDER_REVIEW</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h4>教务处锁定最终成绩</h4>
+                <p>finalizeGrade —— 成绩一旦锁定，任何角色不可修改</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 32px; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: 6px;">
+            <h4 style="font-size:15px;font-weight:600;margin-bottom:10px;">关于「链下存文件 · 链上存凭证」</h4>
+            <p style="font-size:13px;color:var(--ink-2);line-height:1.7;">
+              区块链并不适合直接存储 5MB 的 PDF（会使 Gas 费极高且区块膨胀）。学术盾采用分离式策略：
+            </p>
+            <p style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:10px;">
+              <strong style="color:var(--accent);">链下（IPFS）:</strong> 存储原文 PDF、评语全文<br/>
+              <strong style="color:var(--accent);">链上（合约）:</strong> 仅存储 CID 哈希 + 分数 + 时间戳<br/>
+              <strong style="color:var(--accent);">验证:</strong> 任何人可通过 CID 取回文件并比对哈希 → 确认文件未被篡改
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== REVIEWER VIEW ========================= -->
+<!-- ============================================================ -->
+<div class="page" id="view-reviewer">
+  <section class="section" style="padding: 56px 0 40px;">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Reviewer · 导师端</div>
+          <div class="section-title">待审论文列表</div>
+          <div class="section-desc">你持有 REVIEWER_ROLE，可对状态为 SUBMITTED 的论文进行评分与评语录入。</div>
+        </div>
+        <span class="badge badge-review">REVIEWER_ROLE · 已认证</span>
+      </div>
+
+      <!-- Thesis list -->
+      <div class="reviewer-list">
+        <div class="review-row" onclick="document.getElementById('score-panel').scrollIntoView({behavior:'smooth'});">
+          <div class="review-index">01</div>
+          <div class="review-main">
+            <h4>基于区块链的高校毕设评审系统研究与实现</h4>
+            <p>计算机科学与技术 · 2022 级 · 张同学</p>
+            <div class="cid">CID: QmX9k3...7Hd2 · 提交于 2026-06-14 10:23 · Blk #48,291</div>
+          </div>
+          <div class="review-meta">
+            <span class="badge badge-sub">SUBMITTED</span>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">等待评审</div>
+          </div>
+          <div><button class="action-btn">评分 →</button></div>
+        </div>
+
+        <div class="review-row">
+          <div class="review-index">02</div>
+          <div class="review-main">
+            <h4>分布式事务在金融数据库中的性能优化</h4>
+            <p>软件工程 · 2022 级 · 李同学</p>
+            <div class="cid">CID: QmT7b2...9Kx4 · 提交于 2026-06-14 09:45 · Blk #48,277</div>
+          </div>
+          <div class="review-meta">
+            <span class="badge badge-sub">SUBMITTED</span>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">等待评审</div>
+          </div>
+          <div><button class="action-btn">评分 →</button></div>
+        </div>
+
+        <div class="review-row" style="opacity:0.55;">
+          <div class="review-index">03</div>
+          <div class="review-main">
+            <h4>Vue 3 组合式 API 在大型前端项目中的架构实践</h4>
+            <p>软件工程 · 2022 级 · 王同学</p>
+            <div class="cid">CID: QmP1c8...2Md7 · 提交于 2026-06-13 16:12 · Blk #47,988</div>
+          </div>
+          <div class="review-meta">
+            <span class="badge badge-final">FINALIZED</span>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">得分 92 · 已锁定</div>
+          </div>
+          <div><button class="action-btn" disabled>已锁定</button></div>
+        </div>
+
+        <div class="review-row" style="opacity:0.55;">
+          <div class="review-index">04</div>
+          <div class="review-main">
+            <h4>基于 IPFS 的高校学位论文存储系统设计</h4>
+            <p>信息安全 · 2022 级 · 赵同学</p>
+            <div class="cid">CID: QmR3f1...8Kw9 · 提交于 2026-06-12 11:30 · Blk #46,821</div>
+          </div>
+          <div class="review-meta">
+            <span class="badge badge-review">UNDER_REVIEW</span>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">其他导师评审中</div>
+          </div>
+          <div><button class="action-btn" disabled>评审中</button></div>
+        </div>
+      </div>
+
+      <!-- Score panel -->
+      <div class="score-panel" id="score-panel">
+        <div class="score-title">01 · 评审：《基于区块链的高校毕设评审系统研究与实现》</div>
+        <div class="score-sub">提交者: 0x7A3f...2E9B · IPFS: QmX9k3...7Hd2 · 当前状态: SUBMITTED</div>
+
+        <div class="score-display">
+          <div>
+            <div class="score-num" id="scoreNum">85<small>/ 100</small></div>
+            <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6;">
+              滑杆调整分数<br/>签名后分数将写入区块链
+            </p>
+          </div>
+
+          <div class="score-form">
+            <div class="score-field">
+              <label>总分（uint8 · 0–100）</label>
+              <div class="slider-row">
+                <input type="range" min="0" max="100" value="85" oninput="document.getElementById('scoreNum').innerHTML=this.value+'<small>/ 100</small>';">
+                <span class="val" id="scoreVal">85</span>
+              </div>
+            </div>
+
+            <div class="score-field">
+              <label>评审维度（建议分项）</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="slider-row"><span style="font-size:13px;color:var(--ink-2);">选题</span><input type="range" min="0" max="30" value="26"></div>
+                <div class="slider-row"><span style="font-size:13px;color:var(--ink-2);">创新</span><input type="range" min="0" max="20" value="17"></div>
+                <div class="slider-row"><span style="font-size:13px;color:var(--ink-2);">实现</span><input type="range" min="0" max="30" value="24"></div>
+                <div class="slider-row"><span style="font-size:13px;color:var(--ink-2);">写作</span><input type="range" min="0" max="20" value="18"></div>
+              </div>
+            </div>
+
+            <div class="score-field">
+              <label>评语（将存储至 IPFS，仅哈希上链）</label>
+              <textarea rows="4" placeholder="请输入评审意见（支持 Markdown）...">论文选题具有较强的工程实践价值，作者对 RBAC 权限模型与状态机流转的实现较为扎实，前端架构采用 Vue 3 组合式 API，整体可维护性良好。建议在链下文件的完整性验证部分进一步补充浏览器端哈希比对流程。推荐分数：优秀。</textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;padding-top:12px;">
+              <button class="btn btn-primary" style="flex:1;">签名并提交评审 →</button>
+              <button class="btn btn-ghost">保存草稿</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== ADMIN DASHBOARD ======================= -->
+<!-- ============================================================ -->
+<div class="page" id="view-admin">
+  <section class="section" style="padding: 56px 0 40px;">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Admin · 教务处</div>
+          <div class="section-title">全局评审大盘</div>
+          <div class="section-desc">你持有 ADMIN_ROLE，可在所有导师评审完成后锁定每份论文的最终成绩。</div>
+        </div>
+        <span class="badge badge-final">ADMIN_ROLE · 教务处</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-label">总提交数</div>
+          <div class="stat-value">128</div>
+          <div class="stat-sub">本轮答辩周期</div>
+        </div>
+        <div class="stat accent">
+          <div class="stat-label">待评审</div>
+          <div class="stat-value">23</div>
+          <div class="stat-sub">状态 SUBMITTED</div>
+        </div>
+        <div class="stat gold">
+          <div class="stat-label">评审中</div>
+          <div class="stat-value">47</div>
+          <div class="stat-sub">状态 UNDER_REVIEW</div>
+        </div>
+        <div class="stat" style="background:#0F172A;">
+          <div class="stat-label" style="color:#94A3B8;">已定稿</div>
+          <div class="stat-value" style="color:#F5F1E8;">58</div>
+          <div class="stat-sub" style="color:#94A3B8;">状态 FINALIZED · 平均 87.3</div>
+        </div>
+      </div>
+
+      <div class="admin-layout">
+        <!-- LEFT: Table -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+            <h3 style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:600;">全部论文（按更新时间排序）</h3>
+            <span style="font-size:12px;color:var(--muted);">共 128 份 · 显示前 5 条</span>
+          </div>
+
+          <table class="admin-table">
+            <thead><tr>
+              <th>#</th>
+              <th>学生 / 论文</th>
+              <th>状态</th>
+              <th>分数</th>
+              <th>操作</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td style="font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600;color:var(--ink-2);">1284</td>
+                <td>
+                  <div class="name">张同学 · 《区块链高校毕设评审》</div>
+                  <div class="addr">0x7A3f...2E9B · QmX9k3...7Hd2</div>
+                </td>
+                <td><span class="badge badge-review">UNDER_REVIEW</span></td>
+                <td><span class="score-cell">91</span> <span style="font-size:11px;color:var(--muted);">(2/3 导师)</span></td>
+                <td><button class="action-btn" disabled>等待评审</button></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600;color:var(--ink-2);">1283</td>
+                <td>
+                  <div class="name">李同学 · 《分布式事务优化》</div>
+                  <div class="addr">0x2B1e...7F4a · QmT7b2...9Kx4</div>
+                </td>
+                <td><span class="badge badge-review">UNDER_REVIEW</span></td>
+                <td><span class="score-cell">88</span> <span style="font-size:11px;color:var(--muted);">(3/3 导师)</span></td>
+                <td><button class="action-btn">定稿锁定</button></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600;color:var(--ink-2);">1282</td>
+                <td>
+                  <div class="name">陈同学 · 《边缘计算中的任务调度》</div>
+                  <div class="addr">0x9D4c...1E8f · QmVn3k...4Qs2</div>
+                </td>
+                <td><span class="badge badge-sub">SUBMITTED</span></td>
+                <td>—</td>
+                <td><button class="action-btn" disabled>等待评审</button></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600;color:var(--ink-2);">1251</td>
+                <td>
+                  <div class="name">王同学 · 《Vue 3 组合式 API 架构》</div>
+                  <div class="addr">0x4E8a...9B2c · QmP1c8...2Md7</div>
+                </td>
+                <td><span class="badge badge-final">FINALIZED</span></td>
+                <td><span class="score-cell">92</span></td>
+                <td><button class="action-btn" disabled>已锁定</button></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600;color:var(--ink-2);">1250</td>
+                <td>
+                  <div class="name">赵同学 · 《IPFS 高校学位论文存储》</div>
+                  <div class="addr">0x1C7b...5D3e · QmR3f1...8Kw9</div>
+                </td>
+                <td><span class="badge badge-final">FINALIZED</span></td>
+                <td><span class="score-cell">85</span></td>
+                <td><button class="action-btn" disabled>已锁定</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 28px; padding: 24px; background: #0F172A; color: #94A3B8; border-radius: 6px; font-family:'SF Mono',Consolas,monospace;font-size:12px;line-height:2;">
+            <div style="color:#64748B; letter-spacing:1.5px; text-transform:uppercase; font-size:11px; margin-bottom:12px;">Recent Contract Events</div>
+            <div>[10:23:41] <span style="color:#4ADE80;">ThesisSubmitted</span> · thesisId=1284 · submitter=0x7A3f... · <span style="color:#93C5FD;">QmX9k3...7Hd2</span></div>
+            <div>[10:45:02] <span style="color:#4ADE80;">ThesisReviewed</span> · thesisId=1283 · reviewer=0x9B2e... · score=88</div>
+            <div>[10:45:08] <span style="color:#4ADE80;">ThesisReviewed</span> · thesisId=1283 · reviewer=0x3E1a... · score=90</div>
+            <div>[10:46:12] <span style="color:#4ADE80;">ThesisReviewed</span> · thesisId=1283 · reviewer=0x7D4c... · score=86</div>
+            <div>[10:47:00] <span style="color:#FACC15;">GradeFinalized</span> · thesisId=1251 · finalScore=92 · locked ✓</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Side panel -->
+        <div class="admin-side">
+          <h3>锁定最终成绩</h3>
+          <p class="sub">确认所有导师完成评审后，ADMIN_ROLE 可一键定稿。</p>
+
+          <div style="padding:20px;border:1px solid var(--line);border-radius:4px;margin-bottom:20px;background:var(--paper);">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">待定稿 · #1283</div>
+            <div style="font-family:'Noto Serif SC',serif;font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.4;">《分布式事务在金融数据库中的性能优化》</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'SF Mono',Consolas,monospace;">CID: QmT7b2...9Kx4 · Blk #48,277</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+              <div style="background:#fff;padding:10px 6px;text-align:center;border-radius:4px;border:1px solid var(--line);">
+                <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">导师 A</div>
+                <div style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;color:var(--accent);">88</div>
+              </div>
+              <div style="background:#fff;padding:10px 6px;text-align:center;border-radius:4px;border:1px solid var(--line);">
+                <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">导师 B</div>
+                <div style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;color:var(--accent);">90</div>
+              </div>
+              <div style="background:#fff;padding:10px 6px;text-align:center;border-radius:4px;border:1px solid var(--line);">
+                <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">导师 C</div>
+                <div style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;color:var(--accent);">86</div>
+              </div>
+            </div>
+            <div style="padding:12px;background:#fff;border-radius:4px;text-align:center;border:1px solid var(--accent);">
+              <div style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;">最终分数（三位平均）</div>
+              <div style="font-family:'Noto Serif SC',serif;font-size:36px;font-weight:700;color:var(--accent);line-height:1.1;">88.00</div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%;justify-content:center;">🔒 调用 finalizeGrade 锁定</button>
+          <p style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center;line-height:1.6;">⚠️ 锁定后 emit GradeFinalized 事件<br/>任何角色不可再修改分数</p>
+
+          <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line);">
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--ink-2);">快速操作</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-ghost" style="justify-content:flex-start;padding:10px 16px;font-size:13px;font-weight:500;">→ 授权 STUDENT_ROLE 给新账号</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;padding:10px 16px;font-size:13px;font-weight:500;">→ 授权 REVIEWER_ROLE 给新导师</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;padding:10px 16px;font-size:13px;font-weight:500;">→ 导出本轮成绩 CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">学术盾 AcadShield · contract address: <code style="color:var(--muted);background:transparent;border:1px solid var(--line);padding:3px 8px;border-radius:3px;">0x5FbDB2315678afecb367f032d93F642f64180aa3</code></div>
+</footer>
+
+<script>
+  function switchView(role) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('view-' + role).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  // Sync score slider with display
+  document.querySelectorAll('input[type="range"]').forEach(slider => {
+    slider.addEventListener('input', function() {
+      // nothing extra — simple demo
+    });
+  });
+</script>
+
+</body>
+</html>
