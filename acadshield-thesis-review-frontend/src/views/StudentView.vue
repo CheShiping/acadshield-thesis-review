@@ -1,6 +1,6 @@
 <template>
   <div class="student-view">
-    <div class="view-header">
+    <div class="view-header" ref="viewHeader">
       <h1>学生工作台</h1>
       <p>提交论文并查看评审进度</p>
     </div>
@@ -16,9 +16,9 @@
 
     <div class="content-layout">
       <div class="main-content">
-        <section class="upload-section section">
+        <section class="upload-section section" ref="uploadSection">
           <h2 class="section-title">提交论文</h2>
-          <div class="upload-area">
+          <div class="upload-area" ref="uploadArea">
             <a-upload-dragger
               name="file"
               :multiple="false"
@@ -51,7 +51,7 @@
           </div>
         </section>
 
-        <section class="history-section section">
+        <section class="history-section section" ref="historySection">
           <h2 class="section-title">提交历史</h2>
           <a-table
             :columns="columns"
@@ -75,8 +75,8 @@
         </section>
       </div>
 
-      <div class="side-content">
-        <section class="progress-section">
+      <div class="side-content" ref="sideContent">
+        <section class="progress-section" ref="progressSection">
           <h3>提交进度</h3>
           <a-steps direction="vertical" :current="currentStep" :items="stepsItems" />
         </section>
@@ -93,13 +93,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
 const wallet = useWalletStore()
+
+const viewHeader = ref(null)
+const uploadSection = ref(null)
+const uploadArea = ref(null)
+const historySection = ref(null)
+const sideContent = ref(null)
+const progressSection = ref(null)
 
 const selectedFile = ref(null)
 const mockCID = ref('')
@@ -221,6 +229,33 @@ onMounted(() => {
   if (wallet.isConnected && wallet.account) {
     loadTheses()
   }
+
+  // 入场动画
+  nextTick(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    gsap.set([viewHeader.value, uploadSection.value, historySection.value, sideContent.value], {
+      opacity: 0,
+      y: 30,
+    })
+
+    tl
+      .to(viewHeader.value, { opacity: 1, y: 0, duration: 0.5 }, 0)
+      .to(uploadSection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
+      .to(historySection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.2)
+      .to(sideContent.value, { opacity: 1, y: 0, duration: 0.5 }, 0.15)
+
+    // 上传区域悬停效果
+    if (uploadArea.value) {
+      uploadArea.value.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease'
+      uploadArea.value.addEventListener('mouseenter', () => {
+        gsap.to(uploadArea.value, { y: -4, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', duration: 0.3 })
+      })
+      uploadArea.value.addEventListener('mouseleave', () => {
+        gsap.to(uploadArea.value, { y: 0, boxShadow: 'none', duration: 0.3 })
+      })
+    }
+  })
 })
 </script>
 

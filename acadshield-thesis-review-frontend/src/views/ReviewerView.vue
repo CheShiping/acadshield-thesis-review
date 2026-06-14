@@ -1,13 +1,13 @@
 <template>
   <div class="reviewer-view">
-    <div class="view-header">
+    <div class="view-header" ref="viewHeader">
       <h1>导师工作台</h1>
       <p>评审论文并提交评分</p>
     </div>
 
     <div class="content-layout">
       <div class="main-content">
-        <section class="thesis-list-section section">
+        <section class="thesis-list-section section" ref="thesisListSection">
           <h2 class="section-title">待审论文</h2>
           <a-table
             :columns="columns"
@@ -37,7 +37,7 @@
           </a-table>
         </section>
 
-        <section v-if="selectedThesis" class="review-panel section" id="review-panel">
+        <section v-if="selectedThesis" class="review-panel section" id="review-panel" ref="reviewPanel">
           <h2 class="section-title">评审面板</h2>
           <div class="review-content">
             <div class="thesis-info">
@@ -108,7 +108,7 @@
         </section>
       </div>
 
-      <div class="side-content">
+      <div class="side-content" ref="sideContent">
         <section class="info-panel">
           <h3>评审说明</h3>
           <ul>
@@ -125,12 +125,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
+import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
 const wallet = useWalletStore()
+
+const viewHeader = ref(null)
+const thesisListSection = ref(null)
+const reviewPanel = ref(null)
+const sideContent = ref(null)
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -167,8 +173,16 @@ const handleSelectThesis = (thesis) => {
   selectedThesis.value = thesis
   score.value = 80
   reviewText.value = ''
+
   setTimeout(() => {
     document.getElementById('review-panel')?.scrollIntoView({ behavior: 'smooth' })
+    // 评审面板滑入动画
+    if (reviewPanel.value) {
+      gsap.fromTo(reviewPanel.value,
+        { opacity: 0, x: 50 },
+        { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }
+      )
+    }
   }, 100)
 }
 
@@ -232,6 +246,21 @@ onMounted(() => {
   if (wallet.isConnected) {
     loadTheses()
   }
+
+  // 入场动画
+  nextTick(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    gsap.set([viewHeader.value, thesisListSection.value, sideContent.value], {
+      opacity: 0,
+      y: 30,
+    })
+
+    tl
+      .to(viewHeader.value, { opacity: 1, y: 0, duration: 0.5 }, 0)
+      .to(thesisListSection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
+      .to(sideContent.value, { opacity: 1, y: 0, duration: 0.5 }, 0.15)
+  })
 })
 </script>
 

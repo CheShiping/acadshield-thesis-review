@@ -1,13 +1,13 @@
 <template>
   <div class="admin-view">
-    <div class="view-header">
+    <div class="view-header" ref="viewHeader">
       <h1>教务工作台</h1>
       <p>全局评审管理与角色分配</p>
     </div>
 
     <a-tabs v-model:activeKey="activeTab" class="admin-tabs">
       <a-tab-pane key="thesis" tab="论文管理">
-        <section class="stats-section section">
+        <section class="stats-section section" ref="statsSection">
           <div class="stats-grid">
             <div class="card-dark stat-card">
               <div class="stat-value">{{ stats.total }}</div>
@@ -32,7 +32,7 @@
           </div>
         </section>
 
-        <section class="thesis-table-section section">
+        <section class="thesis-table-section section" ref="thesisTableSection">
           <h2 class="section-title">全部论文</h2>
           <a-table
             :columns="columns"
@@ -71,7 +71,7 @@
           </a-table>
         </section>
 
-        <section class="events-section section">
+        <section class="events-section section" ref="eventsSection">
           <h2 class="section-title">Recent Contract Events</h2>
           <div class="event-log">
             <div v-for="(event, index) in events" :key="index" class="event-log-item">
@@ -191,12 +191,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
+import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
 const wallet = useWalletStore()
+
+const viewHeader = ref(null)
+const statsSection = ref(null)
+const thesisTableSection = ref(null)
+const eventsSection = ref(null)
+const statCards = ref([])
 
 const activeTab = ref('thesis')
 const loading = ref(false)
@@ -448,6 +455,44 @@ onMounted(() => {
   loadTheses()
   setupEventListener()
   loadCurrentAccountRoles()
+
+  // 入场动画
+  nextTick(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    // 获取统计卡片
+    const cards = document.querySelectorAll('.stat-card')
+
+    gsap.set([viewHeader.value, statsSection.value, thesisTableSection.value, eventsSection.value], {
+      opacity: 0,
+      y: 30,
+    })
+    gsap.set(cards, { opacity: 0, y: 20, scale: 0.95 })
+
+    tl
+      .to(viewHeader.value, { opacity: 1, y: 0, duration: 0.5 }, 0)
+      .to(statsSection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
+      .to(cards, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.4,
+        stagger: 0.08,
+      }, 0.2)
+      .to(thesisTableSection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.4)
+      .to(eventsSection.value, { opacity: 1, y: 0, duration: 0.5 }, 0.5)
+
+    // 卡片悬停效果
+    cards.forEach((card) => {
+      card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease'
+      card.addEventListener('mouseenter', () => {
+        gsap.to(card, { y: -4, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', duration: 0.3 })
+      })
+      card.addEventListener('mouseleave', () => {
+        gsap.to(card, { y: 0, boxShadow: 'none', duration: 0.3 })
+      })
+    })
+  })
 })
 </script>
 
