@@ -6,11 +6,8 @@
     </a-layout-content>
     <a-layout-footer class="app-footer">
       <div class="footer-content">
-        <span class="footer-brand">盾 AcadShield</span>
-        <span class="footer-divider">|</span>
-        <span>可信毕设评审系统</span>
-        <span class="footer-divider">|</span>
-        <span>基于区块链技术</span>
+        学术盾 AcadShield · contract address:
+        <code class="footer-addr">{{ wallet.contractAddress }}</code>
       </div>
     </a-layout-footer>
   </a-layout>
@@ -19,14 +16,14 @@
 <script setup>
 import { onMounted } from 'vue'
 import AppHeader from './components/AppHeader.vue'
-import { useWeb3 } from './composables/useWeb3'
+import { useWalletStore } from './stores/wallet'
 
-const { reconnectWallet } = useWeb3()
+const wallet = useWalletStore()
 
 onMounted(async () => {
   // 页面加载时静默重连已授权的钱包
   if (localStorage.getItem('acadshield_wallet_connected')) {
-    await reconnectWallet()
+    await wallet.reconnectWallet()
   }
 })
 </script>
@@ -57,28 +54,25 @@ body {
 }
 
 .app-footer {
-  background: #0F172A;
-  color: #94A3B8;
+  background: #F5F1E8;
   text-align: center;
   padding: 24px 0;
+  border-top: 1px solid #E2DFD6;
 }
 
 .footer-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
+  font-size: 13px;
+  color: #64748B;
 }
 
-.footer-brand {
-  font-family: 'Noto Serif SC', serif;
-  font-weight: 600;
-  color: #F5F1E8;
-}
-
-.footer-divider {
-  color: #475569;
+.footer-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #1E3A8A;
+  background: transparent;
+  border: 1px solid #E2DFD6;
+  padding: 2px 8px;
+  border-radius: 3px;
 }
 
 h1, h2, h3, h4, h5, h6 {

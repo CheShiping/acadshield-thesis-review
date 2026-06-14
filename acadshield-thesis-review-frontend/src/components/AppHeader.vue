@@ -30,11 +30,11 @@
 
       <div class="header-wallet">
         <a-space>
-          <a-tag v-if="isConnected && userRole" :color="roleColor">
+          <a-tag v-if="wallet.isConnected && wallet.userRole" :color="roleColor">
             {{ roleLabel }}
           </a-tag>
           <a-button
-            v-if="!isConnected"
+            v-if="!wallet.isConnected"
             type="primary"
             @click="walletModalOpen = true"
           >
@@ -42,7 +42,7 @@
           </a-button>
           <a-dropdown v-else>
             <a-button>
-              {{ shortAddress }}
+              {{ wallet.shortAddress }}
               <DownOutlined />
             </a-button>
             <template #overlay>
@@ -69,11 +69,11 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { DownOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 import WalletModal from './WalletModal.vue'
 
 const route = useRoute()
-const { isConnected, userRole, shortAddress, disconnectWallet } = useWeb3()
+const wallet = useWalletStore()
 
 const walletModalOpen = ref(false)
 const selectedKeys = ref(['home'])
@@ -90,7 +90,7 @@ watch(
 )
 
 const roleColor = computed(() => {
-  switch (userRole.value) {
+  switch (wallet.userRole) {
     case 'ADMIN_ROLE': return 'red'
     case 'REVIEWER_ROLE': return 'blue'
     case 'STUDENT_ROLE': return 'green'
@@ -99,7 +99,7 @@ const roleColor = computed(() => {
 })
 
 const roleLabel = computed(() => {
-  switch (userRole.value) {
+  switch (wallet.userRole) {
     case 'ADMIN_ROLE': return '管理员'
     case 'REVIEWER_ROLE': return '导师'
     case 'STUDENT_ROLE': return '学生'
@@ -108,7 +108,7 @@ const roleLabel = computed(() => {
 })
 
 const handleDisconnect = () => {
-  disconnectWallet()
+  wallet.disconnectWallet()
   message.info('已断开连接')
 }
 </script>

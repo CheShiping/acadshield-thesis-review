@@ -95,16 +95,16 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 
-const { getThesisCount: fetchThesisCount, isConnected, contract } = useWeb3()
+const wallet = useWalletStore()
 
 const thesisCount = ref(0)
 
 onMounted(async () => {
   try {
-    if (isConnected.value && contract.value) {
-      const count = await fetchThesisCount()
+    if (wallet.isConnected && wallet.contract) {
+      const count = await wallet.getThesisCount()
       thesisCount.value = Number(count)
     }
   } catch (error) {

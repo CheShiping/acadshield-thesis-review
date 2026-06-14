@@ -2,12 +2,35 @@ const hre = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 
+// 在这里列出你想要预置 ETH 的测试地址（从 MetaMask 复制）
+// 每个地址会自动获得 100 ETH
+const TEST_ADDRESSES_TO_FUND = [
+  // 示例: "0x1234...abcd",
+  0xBEB60d0E52F36dF96816F10987BAe28f2aD72aB2,
+  0x60780F39004283358d1D82820966F57104b2827f,
+  0xfd6cc37556D7ff638dF35d010b37b69f51c99a5B
+];
+
 async function main() {
   const [deployer, student, reviewer] = await hre.ethers.getSigners();
 
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Student account:", student.address);
   console.log("Reviewer account:", reviewer.address);
+
+  // 给测试地址预置 ETH
+  for (const addr of TEST_ADDRESSES_TO_FUND) {
+    try {
+      const tx = await deployer.sendTransaction({
+        to: addr,
+        value: hre.ethers.parseEther("100"),
+      });
+      await tx.wait();
+      console.log("Sent 100 ETH to:", addr);
+    } catch (e) {
+      console.log("Failed to fund", addr, ":", e.message);
+    }
+  }
 
   const AcadShield = await hre.ethers.getContractFactory("AcadShield");
   const acadShield = await AcadShield.deploy();

@@ -177,10 +177,10 @@
           <div class="current-role">
             <h3>当前账号角色</h3>
             <p>
-              <span class="mono">{{ account || '未连接' }}</span>
-              <span v-if="userRole === 'ADMIN_ROLE'" class="role-tag role-admin">当前角色: ADMIN</span>
-              <span v-else-if="userRole === 'REVIEWER_ROLE'" class="role-tag role-reviewer">当前角色: REVIEWER</span>
-              <span v-else-if="userRole === 'STUDENT_ROLE'" class="role-tag role-student">当前角色: STUDENT</span>
+              <span class="mono">{{ wallet.account || '未连接' }}</span>
+              <span v-if="wallet.userRole === 'ADMIN_ROLE'" class="role-tag role-admin">当前角色: ADMIN</span>
+              <span v-else-if="wallet.userRole === 'REVIEWER_ROLE'" class="role-tag role-reviewer">当前角色: REVIEWER</span>
+              <span v-else-if="wallet.userRole === 'STUDENT_ROLE'" class="role-tag role-student">当前角色: STUDENT</span>
               <span v-else class="role-tag role-none">未分配角色</span>
             </p>
           </div>
@@ -193,24 +193,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { message } from 'ant-design-vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
-const {
-  account,
-  userRole,
-  contract,
-  STUDENT_ROLE,
-  REVIEWER_ROLE,
-  ADMIN_ROLE,
-  finalizeGrade,
-  rejectThesis,
-  getThesisCount,
-  getThesisDetails,
-  grantRole,
-  revokeRole,
-  getAccountRoles,
-} = useWeb3()
+const wallet = useWalletStore()
 
 const activeTab = ref('thesis')
 const loading = ref(false)
@@ -231,9 +217,9 @@ const roleForm = ref({
 const roleList = ref([])
 
 const roleMap = {
-  STUDENT_ROLE: STUDENT_ROLE,
-  REVIEWER_ROLE: REVIEWER_ROLE,
-  ADMIN_ROLE: ADMIN_ROLE,
+  STUDENT_ROLE: wallet.STUDENT_ROLE,
+  REVIEWER_ROLE: wallet.REVIEWER_ROLE,
+  ADMIN_ROLE: wallet.ADMIN_ROLE,
 }
 
 const roleColumns = [
@@ -275,7 +261,7 @@ const shortenAddress = (address) => {
 const handleFinalizeById = async (id) => {
   finalizing.value = id
   try {
-    await finalizeGrade(id)
+    await wallet.finalizeGrade(id)
     message.success('成绩定稿成功')
     await loadTheses()
   } catch (error) {
@@ -288,7 +274,7 @@ const handleFinalizeById = async (id) => {
 const handleRejectById = async (id) => {
   rejecting.value = id
   try {
-    await rejectThesis(id)
+    await wallet.rejectThesis(id)
     message.success('论文已驳回')
     await loadTheses()
   } catch (error) {
@@ -311,7 +297,7 @@ const handleQueryRole = async () => {
 
   querying.value = true
   try {
-    const roles = await getAccountRoles(addr)
+    const roles = await wallet.getAccountRoles(addr)
     const newRecord = {
       address: addr,
       isStudent: roles.isStudent,
@@ -354,12 +340,12 @@ const handleToggle = async (roleName, addr) => {
 
   try {
     if (currentState) {
-      await revokeRole(roleBytes, addr)
+      await wallet.revokeRole(roleBytes, addr)
     } else {
-      await grantRole(roleBytes, addr)
+      await wallet.grantRole(roleBytes, addr)
     }
 
-    const roles = await getAccountRoles(addr)
+    const roles = await wallet.getAccountRoles(addr)
     const index = roleList.value.findIndex((r) => r.address.toLowerCase() === addr.toLowerCase())
     if (index >= 0) {
       roleList.value[index] = {
@@ -383,11 +369,11 @@ const handleToggle = async (roleName, addr) => {
 const loadTheses = async () => {
   loading.value = true
   try {
-    const count = await getThesisCount()
+    const count = await wallet.getThesisCount()
     const thesisList = []
 
     for (let i = 0; i < Number(count); i++) {
-      const thesis = await getThesisDetails(i)
+      const thesis = await wallet.getThesisDetails(i)
       thesisList.push({
         id: Number(thesis.id),
         submitter: thesis.submitter,
@@ -408,7 +394,7 @@ const loadTheses = async () => {
 }
 
 const setupEventListener = () => {
-  if (!contract.value) return
+  if (!wallet.contract) return
 
   const addEvent = (name, thesisId, score = null) => {
     events.value.unshift({
@@ -422,33 +408,33 @@ const setupEventListener = () => {
     }
   }
 
-  contract.value.on('ThesisSubmitted', (thesisId, submitter, thesisCID, timestamp) => {
+  wallet.contract.on('ThesisSubmitted', (thesisId, submitter, thesisCID, timestamp) => {
     addEvent('ThesisSubmitted', thesisId)
     loadTheses()
   })
 
-  contract.value.on('ThesisReviewed', (thesisId, reviewer, score, reviewCID) => {
+  wallet.contract.on('ThesisReviewed', (thesisId, reviewer, score, reviewCID) => {
     addEvent('ThesisReviewed', thesisId, score)
     loadTheses()
   })
 
-  contract.value.on('GradeFinalized', (thesisId, finalScore) => {
+  wallet.contract.on('GradeFinalized', (thesisId, finalScore) => {
     addEvent('GradeFinalized', thesisId, finalScore)
     loadTheses()
   })
 
-  contract.value.on('ThesisRejected', (thesisId, admin, timestamp) => {
+  wallet.contract.on('ThesisRejected', (thesisId, admin, timestamp) => {
     addEvent('ThesisRejected', thesisId)
     loadTheses()
   })
 }
 
 const loadCurrentAccountRoles = async () => {
-  if (!account.value) return
+  if (!wallet.account) return
   try {
-    const roles = await getAccountRoles(account.value)
+    const roles = await wallet.getAccountRoles(wallet.account)
     roleList.value = [{
-      address: account.value,
+      address: wallet.account,
       isStudent: roles.isStudent,
       isReviewer: roles.isReviewer,
       isAdmin: roles.isAdmin,

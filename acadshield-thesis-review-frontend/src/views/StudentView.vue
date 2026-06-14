@@ -5,7 +5,7 @@
       <p>提交论文并查看评审进度</p>
     </div>
 
-    <div v-if="!isConnected" class="connect-prompt">
+    <div v-if="!wallet.isConnected" class="connect-prompt">
       <a-alert
         message="请先连接钱包"
         description="连接钱包后才能提交论文"
@@ -24,7 +24,7 @@
               :multiple="false"
               :before-upload="handleBeforeUpload"
               :show-upload-list="false"
-              :disabled="!isConnected"
+              :disabled="!wallet.isConnected"
             >
               <p class="upload-icon">
                 <inbox-outlined />
@@ -45,7 +45,7 @@
                 :loading="submitting"
                 :disabled="!canSubmit"
               >
-                {{ canSubmit ? '提交论文' : (isConnected ? '您的账号没有学生角色权限' : '请先连接钱包') }}
+                {{ canSubmit ? '提交论文' : (wallet.isConnected ? '您的账号没有学生角色权限' : '请先连接钱包') }}
               </a-button>
             </div>
           </div>
@@ -58,7 +58,7 @@
             :data-source="theses"
             :loading="loading"
             row-key="id"
-            :empty-text="isConnected ? '暂无提交记录' : '请连接钱包查看提交历史'"
+            :empty-text="wallet.isConnected ? '暂无提交记录' : '请连接钱包查看提交历史'"
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'state'">
@@ -96,17 +96,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
-const {
-  isConnected,
-  userRole,
-  account,
-  submitThesis,
-  getStudentTheses,
-  getThesisDetails,
-} = useWeb3()
+const wallet = useWalletStore()
 
 const selectedFile = ref(null)
 const mockCID = ref('')
@@ -132,7 +125,7 @@ const columns = [
 ]
 
 const canSubmit = computed(() => {
-  return isConnected.value && userRole.value === 'STUDENT_ROLE' && selectedFile.value
+  return wallet.isConnected && wallet.userRole === 'STUDENT_ROLE' && selectedFile.value
 })
 
 const generateMockCID = () => {
@@ -172,7 +165,7 @@ const handleSubmit = async () => {
   currentStep.value = 2
 
   try {
-    await submitThesis(mockCID.value)
+    await wallet.submitThesis(mockCID.value)
     message.success('论文提交成功！交易已上链')
     currentStep.value = 3
     selectedFile.value = null
@@ -188,15 +181,15 @@ const handleSubmit = async () => {
 }
 
 const loadTheses = async () => {
-  if (!account.value || !isConnected.value) return
+  if (!wallet.account || !wallet.isConnected) return
 
   loading.value = true
   try {
-    const thesisIds = await getStudentTheses(account.value)
+    const thesisIds = await wallet.getStudentTheses(wallet.account)
     const thesisList = []
 
     for (const id of thesisIds) {
-      const thesis = await getThesisDetails(Number(id))
+      const thesis = await wallet.getThesisDetails(Number(id))
       thesisList.push({
         id: Number(thesis.id),
         thesisCID: thesis.thesisCID,
@@ -215,14 +208,17 @@ const loadTheses = async () => {
   }
 }
 
-watch([isConnected, account], () => {
-  if (isConnected.value && account.value) {
-    loadTheses()
-  }
-})
+watch(
+  () => [wallet.isConnected, wallet.account],
+  ([connected, acc]) => {
+    if (connected && acc) {
+      loadTheses()
+    }
+  },
+)
 
 onMounted(() => {
-  if (isConnected.value && account.value) {
+  if (wallet.isConnected && wallet.account) {
     loadTheses()
   }
 })

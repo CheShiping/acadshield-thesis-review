@@ -33,7 +33,7 @@
 <script setup>
 import { ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 
 defineProps({
   open: { type: Boolean, default: false },
@@ -41,7 +41,7 @@ defineProps({
 
 const emit = defineEmits(['close'])
 
-const { connectWallet } = useWeb3()
+const walletStore = useWalletStore()
 const connecting = ref(false)
 const selectedWallet = ref(null)
 
@@ -97,17 +97,17 @@ const detectWallets = () => {
 
 const wallets = ref(detectWallets())
 
-const handleSelect = async (wallet) => {
-  if (!wallet.installed) {
-    message.warning(`请先安装 ${wallet.name} 插件`)
+const handleSelect = async (item) => {
+  if (!item.installed) {
+    message.warning(`请先安装 ${item.name} 插件`)
     return
   }
 
   connecting.value = true
-  selectedWallet.value = wallet.name
+  selectedWallet.value = item.name
 
   try {
-    await connectWallet(wallet.provider)
+    await walletStore.connectWallet(item.provider)
     message.success('钱包连接成功')
     emit('close')
   } catch (error) {

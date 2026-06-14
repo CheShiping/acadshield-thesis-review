@@ -96,7 +96,7 @@
                 type="primary"
                 @click="handleSubmitReview"
                 :loading="submitting"
-                :disabled="!isConnected || userRole !== 'REVIEWER_ROLE'"
+                :disabled="!wallet.isConnected || wallet.userRole !== 'REVIEWER_ROLE'"
               >
                 提交评审
               </a-button>
@@ -127,16 +127,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
-import { useWeb3 } from '../composables/useWeb3'
+import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
 
-const {
-  isConnected,
-  userRole,
-  reviewThesis,
-  getThesisCount,
-  getThesisDetails,
-} = useWeb3()
+const wallet = useWalletStore()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -192,7 +186,7 @@ const handleSubmitReview = async () => {
   submitting.value = true
   try {
     const reviewCID = generateMockCID()
-    await reviewThesis(selectedThesis.value.id, score.value, reviewCID)
+    await wallet.reviewThesis(selectedThesis.value.id, score.value, reviewCID)
     message.success('评审提交成功')
     selectedThesis.value = null
     await loadTheses()
@@ -210,11 +204,11 @@ const handleSaveDraft = () => {
 const loadTheses = async () => {
   loading.value = true
   try {
-    const count = await getThesisCount()
+    const count = await wallet.getThesisCount()
     const thesisList = []
 
     for (let i = 0; i < Number(count); i++) {
-      const thesis = await getThesisDetails(i)
+      const thesis = await wallet.getThesisDetails(i)
       if (Number(thesis.state) === 1 || Number(thesis.state) === 2 || Number(thesis.state) === 4) {
         thesisList.push({
           id: Number(thesis.id),
@@ -235,7 +229,7 @@ const loadTheses = async () => {
 }
 
 onMounted(() => {
-  if (isConnected.value) {
+  if (wallet.isConnected) {
     loadTheses()
   }
 })

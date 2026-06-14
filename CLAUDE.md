@@ -24,7 +24,7 @@ prototype.html                        # Static HTML prototype (design reference)
 
 **Student submissions**: Students can submit multiple theses (stored in `studentTheses[address]` array), each receiving a unique `thesisId`.
 
-**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue and Ant Design Web3 for wallet connection. `composables/useWeb3.js` wraps ethers.js v6 for contract interaction. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize/reject panel). AdminView listens to contract events (`ThesisSubmitted`, `ThesisReviewed`, `GradeFinalized`, `ThesisRejected`) for real-time updates.
+**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue. Wallet state managed by Pinia store (`stores/wallet.js`) with localStorage persistence for auto-reconnect. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize/reject panel + role management). AdminView listens to contract events (`ThesisSubmitted`, `ThesisReviewed`, `GradeFinalized`, `ThesisRejected`) for real-time updates.
 
 ## Common Commands
 
