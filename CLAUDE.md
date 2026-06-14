@@ -24,7 +24,7 @@ prototype.html                        # Static HTML prototype (design reference)
 
 **Student submissions**: Students can submit multiple theses (stored in `studentTheses[address]` array), each receiving a unique `thesisId`.
 
-**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue. Wallet state managed by Pinia store (`stores/wallet.js`) with localStorage persistence for auto-reconnect. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize/reject panel + role management). AdminView listens to contract events (`ThesisSubmitted`, `ThesisReviewed`, `GradeFinalized`, `ThesisRejected`) for real-time updates.
+**Frontend** (`src/`): Vue 3 Composition API with Ant Design of Vue. Wallet state managed by Pinia store (`stores/wallet.js`) with localStorage persistence for auto-reconnect. Four views: Home (Hero/Workflow/Architecture), Student (upload + progress), Reviewer (list + scoring panel), Admin (stats table + finalize/reject panel + role management). AdminView listens to contract events (`ThesisSubmitted`, `ThesisReviewed`, `GradeFinalized`, `ThesisRejected`) for real-time updates. PDF preview uses localStorage-based storage with `<embed>` + Blob URL rendering (`components/PdfPreview.vue`).
 
 ## Common Commands
 
@@ -80,3 +80,5 @@ Frontend listens to these (set up in `AdminView.vue` `setupEventListener()`):
 - **Use `shallowRef` for ethers.js objects** — Vue's `ref()` wraps objects in a deep Proxy which breaks ethers.js v6 private field access ("Cannot read from private field"). Use `shallowRef` for `provider`, `signer`, `contract`.
 - **Never run `npx hardhat test` while the frontend is connected** — Hardhat test uses snapshot/revert which wipes deployed contracts from the running node. Always redeploy after running tests.
 - **`@ant-design/web3` is React-only** — The project uses a custom `WalletModal.vue` with `ant-design-vue` components for wallet selection. The Vue equivalent package (`@ant-design/web3-vue`) is not installed.
+- **Ant Design Vue table `ellipsis: true` requires `width`** — Without a `width` property on the column, the column auto-expands and ellipsis never triggers.
+- **PDF preview: use Blob URLs, not Data URLs in iframes** — base64 Data URLs in `<iframe>` cause Chinese character corruption. Convert via `atob()` → `Uint8Array` → `Blob` → `URL.createObjectURL()`, and use `<embed type="application/pdf">` instead of `<iframe>`.
