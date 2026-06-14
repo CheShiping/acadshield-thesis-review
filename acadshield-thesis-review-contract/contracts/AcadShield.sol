@@ -58,6 +58,8 @@ contract AcadShield is AccessControl, ReentrancyGuard {
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
+        _setRoleAdmin(STUDENT_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(REVIEWER_ROLE, ADMIN_ROLE);
     }
 
     function submitThesis(string memory thesisCID) external onlyRole(STUDENT_ROLE) {
@@ -125,5 +127,19 @@ contract AcadShield is AccessControl, ReentrancyGuard {
 
     function getThesisCount() external view returns (uint256) {
         return nextThesisId;
+    }
+
+    struct AccountRoles {
+        bool isStudent;
+        bool isReviewer;
+        bool isAdmin;
+    }
+
+    function getAccountRoles(address account) external view returns (AccountRoles memory) {
+        return AccountRoles({
+            isStudent: hasRole(STUDENT_ROLE, account),
+            isReviewer: hasRole(REVIEWER_ROLE, account),
+            isAdmin: hasRole(ADMIN_ROLE, account)
+        });
     }
 }

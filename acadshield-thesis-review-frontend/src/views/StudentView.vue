@@ -5,6 +5,15 @@
       <p>提交论文并查看评审进度</p>
     </div>
 
+    <div v-if="!isConnected" class="connect-prompt">
+      <a-alert
+        message="请先连接钱包"
+        description="连接钱包后才能提交论文"
+        type="info"
+        show-icon
+      />
+    </div>
+
     <div class="content-layout">
       <div class="main-content">
         <section class="upload-section section">
@@ -15,6 +24,7 @@
               :multiple="false"
               :before-upload="handleBeforeUpload"
               :show-upload-list="false"
+              :disabled="!isConnected"
             >
               <p class="upload-icon">
                 <inbox-outlined />
@@ -33,9 +43,9 @@
                 type="primary"
                 @click="handleSubmit"
                 :loading="submitting"
-                :disabled="!isConnected || userRole !== 'STUDENT_ROLE'"
+                :disabled="!canSubmit"
               >
-                提交论文
+                {{ canSubmit ? '提交论文' : (isConnected ? '您的账号没有学生角色权限' : '请先连接钱包') }}
               </a-button>
             </div>
           </div>
@@ -48,6 +58,7 @@
             :data-source="theses"
             :loading="loading"
             row-key="id"
+            :empty-text="isConnected ? '暂无提交记录' : '请连接钱包查看提交历史'"
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'state'">
@@ -82,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { InboxOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useWeb3 } from '../composables/useWeb3'
@@ -119,6 +130,10 @@ const columns = [
   { title: '分数', dataIndex: 'score', key: 'score', width: 80 },
   { title: '提交时间', dataIndex: 'submittedAt', key: 'submittedAt', width: 180 },
 ]
+
+const canSubmit = computed(() => {
+  return isConnected.value && userRole.value === 'STUDENT_ROLE' && selectedFile.value
+})
 
 const generateMockCID = () => {
   const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -158,12 +173,14 @@ const handleSubmit = async () => {
 
   try {
     await submitThesis(mockCID.value)
-    message.success('论文提交成功')
+    message.success('论文提交成功！交易已上链')
     currentStep.value = 3
     selectedFile.value = null
+    mockCID.value = ''
     await loadTheses()
   } catch (error) {
-    message.error('提交失败: ' + error.message)
+    console.error('Submit error:', error)
+    message.error('提交失败: ' + (error.message || '未知错误'))
     currentStep.value = 1
   } finally {
     submitting.value = false
@@ -171,7 +188,7 @@ const handleSubmit = async () => {
 }
 
 const loadTheses = async () => {
-  if (!account.value) return
+  if (!account.value || !isConnected.value) return
 
   loading.value = true
   try {
@@ -192,10 +209,17 @@ const loadTheses = async () => {
     theses.value = thesisList.reverse()
   } catch (error) {
     console.error('Failed to load theses:', error)
+    message.error('加载提交历史失败: ' + error.message)
   } finally {
     loading.value = false
   }
 }
+
+watch([isConnected, account], () => {
+  if (isConnected.value && account.value) {
+    loadTheses()
+  }
+})
 
 onMounted(() => {
   if (isConnected.value && account.value) {
@@ -223,6 +247,10 @@ onMounted(() => {
 .view-header p {
   font-size: 16px;
   color: #64748B;
+}
+
+.connect-prompt {
+  margin-bottom: 24px;
 }
 
 .content-layout {
@@ -345,5 +373,9 @@ onMounted(() => {
 :deep(.ant-btn-primary) {
   background: #1E3A8A;
   border-color: #1E3A8A;
+}
+
+:deep(.ant-btn[disabled]) {
+  opacity: 0.5;
 }
 </style>

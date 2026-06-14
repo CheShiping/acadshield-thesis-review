@@ -74,3 +74,9 @@ Frontend listens to these (set up in `AdminView.vue` `setupEventListener()`):
 - All UI text is in Chinese (zh-CN)
 - Contract project uses Solidity 0.8.24 with Hardhat (chainId 31337)
 - Frontend uses Ant Design of Vue 4.x with global registration in `main.js`
+
+## Gotchas
+
+- **Use `shallowRef` for ethers.js objects** — Vue's `ref()` wraps objects in a deep Proxy which breaks ethers.js v6 private field access ("Cannot read from private field"). Use `shallowRef` for `provider`, `signer`, `contract`.
+- **Never run `npx hardhat test` while the frontend is connected** — Hardhat test uses snapshot/revert which wipes deployed contracts from the running node. Always redeploy after running tests.
+- **`@ant-design/web3` is React-only** — The project uses a custom `WalletModal.vue` with `ant-design-vue` components for wallet selection. The Vue equivalent package (`@ant-design/web3-vue`) is not installed.
