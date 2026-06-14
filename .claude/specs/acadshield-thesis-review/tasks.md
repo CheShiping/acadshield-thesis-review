@@ -9,14 +9,15 @@
   - [ ] SubTask 1.4: 创建子目录 `contracts/`、`test/`、`scripts/`
 
 - [ ] Task 2: 编写 AcadShield.sol 智能合约
-  - [ ] SubTask 2.1: 定义角色常量（`STUDENT_ROLE`、`REVIEWER_ROLE`、`ADMIN_ROLE`）和状态枚举（`NOT_SUBMITTED`、`SUBMITTED`、`UNDER_REVIEW`、`FINALIZED`）
-  - [ ] SubTask 2.2: 实现数据结构（`Thesis` struct、映射 `theses`、学生提交计数器）
+  - [ ] SubTask 2.1: 定义角色常量（`STUDENT_ROLE`、`REVIEWER_ROLE`、`ADMIN_ROLE`）和状态枚举（`NOT_SUBMITTED`、`SUBMITTED`、`UNDER_REVIEW`、`FINALIZED`、`REJECTED`）
+  - [ ] SubTask 2.2: 实现数据结构（`Thesis` struct、映射 `theses`、`studentTheses` 映射存储每个学生的论文 ID 数组）
   - [ ] SubTask 2.3: 实现构造函数，授予部署者 `ADMIN_ROLE`，预留角色分配接口
-  - [ ] SubTask 2.4: 实现 `submitThesis(string thesisCID)` 函数，包含状态校验和权限检查
-  - [ ] SubTask 2.5: 实现 `reviewThesis(uint256 thesisId, uint8 score, string reviewCID)` 函数
-  - [ ] SubTask 2.6: 实现 `finalizeGrade(uint256 thesisId)` 函数，检查所有评审完成
-  - [ ] SubTask 2.7: 实现查询函数 `getThesisDetails(uint256 thesisId)` 和 `getUserRole(address user)`
-  - [ ] SubTask 2.8: 定义事件 `ThesisSubmitted`、`ThesisReviewed`、`GradeFinalized`
+  - [ ] SubTask 2.4: 实现 `submitThesis(string thesisCID)` 函数，支持多次提交，每次提交生成唯一 thesisId
+  - [ ] SubTask 2.5: 实现 `reviewThesis(uint256 thesisId, uint8 score, string reviewCID)` 函数，开放评审机制（任意 REVIEWER_ROLE 可评审）
+  - [ ] SubTask 2.6: 实现 `finalizeGrade(uint256 thesisId)` 函数，要求评审存在（reviewer != address(0)）
+  - [ ] SubTask 2.7: 实现 `rejectThesis(uint256 thesisId)` 函数，可从 SUBMITTED 或 UNDER_REVIEW 状态驳回，REJECTED 为终态
+  - [ ] SubTask 2.8: 实现查询函数 `getThesisDetails(uint256 thesisId)`、`getStudentTheses(address student)` 和 `getThesisCount()`
+  - [ ] SubTask 2.9: 定义事件 `ThesisSubmitted`、`ThesisReviewed`、`GradeFinalized`、`ThesisRejected`
 
 - [ ] Task 3: 编写自动化部署脚本
   - [ ] SubTask 3.1: 创建 `scripts/deploy.js`，部署 AcadShield 合约
@@ -25,17 +26,23 @@
 
 ## 阶段二：单元测试
 
-- [ ] Task 4: 编写 AcadShield 合约单元测试
+- [ ] Task 4: 编写 AcadShield 合约单元测试（≥16 个用例）
   - [ ] SubTask 4.1: 正向用例 - 学生成功提交论文
   - [ ] SubTask 4.2: 正向用例 - 导师成功评审论文
   - [ ] SubTask 4.3: 正向用例 - 教务处成功定稿成绩
   - [ ] SubTask 4.4: 正向用例 - 完整流程（提交 → 评审 → 定稿）
   - [ ] SubTask 4.5: 反向用例 - 非学生角色尝试提交（Expect revert）
-  - [ ] SubTask 4.6: 反向用例 - 学生重复提交（Expect revert）
-  - [ ] SubTask 4.7: 反向用例 - 非导师角色尝试评审（Expect revert）
-  - [ ] SubTask 4.8: 反向用例 - 非管理员角色尝试定稿（Expect revert）
-  - [ ] SubTask 4.9: 反向用例 - 已定稿论文尝试再次评审（Expect revert）
-  - [ ] SubTask 4.10: 反向用例 - 未评审完强行定稿（Expect revert）
+  - [ ] SubTask 4.6: 反向用例 - 非导师角色尝试评审（Expect revert）
+  - [ ] SubTask 4.7: 反向用例 - 非管理员角色尝试定稿（Expect revert）
+  - [ ] SubTask 4.8: 反向用例 - 已定稿论文尝试再次评审（Expect revert）
+  - [ ] SubTask 4.9: 反向用例 - 未评审完强行定稿（Expect revert）
+  - [ ] SubTask 4.10: 正向用例 - 管理员驳回 SUBMITTED 状态的论文（Expect state REJECTED）
+  - [ ] SubTask 4.11: 正向用例 - 管理员驳回 UNDER_REVIEW 状态的论文（Expect state REJECTED）
+  - [ ] SubTask 4.12: 反向用例 - 非管理员尝试驳回（Expect revert）
+  - [ ] SubTask 4.13: 反向用例 - 尝试评审 REJECTED 状态的论文（Expect revert）
+  - [ ] SubTask 4.14: 反向用例 - 尝试定稿 REJECTED 状态的论文（Expect revert）
+  - [ ] SubTask 4.15: 正向用例 - 学生提交多篇论文（均被跟踪）
+  - [ ] SubTask 4.16: 正向用例 - 开放评审（任意 REVIEWER_ROLE 可评审）
 
 ## 阶段三：前端开发
 
@@ -51,12 +58,12 @@
 - [ ] Task 6: 实现前端页面和组件
   - [ ] SubTask 6.1: 创建 `AppHeader.vue`（品牌标识 + 导航链接 + Ant Design Web3 Connector 钱包连接）
   - [ ] SubTask 6.2: 创建 `HomeView.vue`（Hero 区 + Workflow 三步卡片 + Architecture 架构图）—— 对应原型首页
-  - [ ] SubTask 6.3: 创建 `StudentView.vue`（文件上传区 + 文件元数据 + Steps 进度条 + 提交历史表）—— 对应原型学生端
-  - [ ] SubTask 6.4: 创建 `ReviewerView.vue`（论文列表 + 滑杆打分面板 + 评语 + 签名提交）—— 对应原型导师端
-  - [ ] SubTask 6.5: 创建 `AdminView.vue`（四列统计卡 + 论文状态表 + 合约事件日志 + 定稿锁定面板）—— 对应原型教务端
-  - [ ] SubTask 6.6: 创建 `RoleBadge.vue` 角色标识组件（SUBMITTED/UNDER_REVIEW/FINALIZED 三种状态徽章）
+  - [ ] SubTask 6.3: 创建 `StudentView.vue`（文件上传区 + 文件元数据 + Steps 进度条 + 提交历史表，支持多次提交）—— 对应原型学生端
+  - [ ] SubTask 6.4: 创建 `ReviewerView.vue`（论文列表 + 滑杆打分面板 + 评语 + 签名提交，开放评审机制）—— 对应原型导师端
+  - [ ] SubTask 6.5: 创建 `AdminView.vue`（五列统计卡 + 论文状态表显示单个评审者信息 + 合约事件日志 + 定稿锁定面板 + 驳回按钮）—— 对应原型教务端
+  - [ ] SubTask 6.6: 创建 `RoleBadge.vue` 角色标识组件（SUBMITTED/UNDER_REVIEW/FINALIZED/REJECTED 四种状态徽章）
   - [ ] SubTask 6.7: 集成 ethers.js 调用合约方法，使用 Ant Design message 处理交易状态
-  - [ ] SubTask 6.8: 监听合约事件（ThesisSubmitted、GradeFinalized），自动刷新页面数据
+  - [ ] SubTask 6.8: 监听合约事件（ThesisSubmitted、ThesisReviewed、GradeFinalized、ThesisRejected），自动刷新页面数据
 
 ## 阶段四：联调与交付
 
