@@ -70,6 +70,11 @@
               <template v-if="column.key === 'thesisCID'">
                 <code class="mono cid-text">{{ record.thesisCID }}</code>
               </template>
+              <template v-if="column.key === 'action'">
+                <a-button size="small" @click="previewThesisId = record.id; previewVisible = true">
+                  预览 PDF
+                </a-button>
+              </template>
             </template>
           </a-table>
         </section>
@@ -90,6 +95,12 @@
       </div>
     </div>
   </div>
+
+  <PdfPreview
+    :visible="previewVisible"
+    :thesis-id="previewThesisId"
+    @close="previewVisible = false"
+  />
 </template>
 
 <script setup>
@@ -99,6 +110,7 @@ import { message } from 'ant-design-vue'
 import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
+import PdfPreview from '../components/PdfPreview.vue'
 
 const wallet = useWalletStore()
 
@@ -110,11 +122,15 @@ const sideContent = ref(null)
 const progressSection = ref(null)
 
 const selectedFile = ref(null)
+const pendingPdfDataUrl = ref(null)
 const mockCID = ref('')
 const submitting = ref(false)
 const loading = ref(false)
 const theses = ref([])
 const currentStep = ref(0)
+
+const previewVisible = ref(false)
+const previewThesisId = ref(null)
 
 const stepsItems = [
   { title: '选择文件', description: '选择论文 PDF 文件' },
@@ -126,9 +142,10 @@ const stepsItems = [
 
 const columns = [
   { title: '编号', dataIndex: 'id', key: 'id', width: 80 },
-  { title: '论文 CID', dataIndex: 'thesisCID', key: 'thesisCID', ellipsis: true },
+  { title: '论文 CID', dataIndex: 'thesisCID', key: 'thesisCID', width: 200, ellipsis: true },
   { title: '状态', dataIndex: 'state', key: 'state', width: 100 },
   { title: '分数', dataIndex: 'score', key: 'score', width: 80 },
+  { title: '操作', key: 'action', width: 100 },
   { title: '提交时间', dataIndex: 'submittedAt', key: 'submittedAt', width: 180 },
 ]
 
@@ -160,6 +177,12 @@ const handleBeforeUpload = (file) => {
   selectedFile.value = file
   mockCID.value = generateMockCID()
   currentStep.value = 1
+  // 读取 PDF 为 base64 Data URL，用于 localStorage 存储
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    pendingPdfDataUrl.value = e.target.result
+  }
+  reader.readAsDataURL(file)
   return false
 }
 
@@ -173,10 +196,26 @@ const handleSubmit = async () => {
   currentStep.value = 2
 
   try {
+    // 提交前记录当前论文数，提交后该 ID = count
+    const countBefore = await wallet.getThesisCount()
+    const thesisId = Number(countBefore)
+
     await wallet.submitThesis(mockCID.value)
+
+    // 将 PDF 存入 localStorage
+    if (pendingPdfDataUrl.value) {
+      try {
+        localStorage.setItem(`acadshield_pdf_${thesisId}`, pendingPdfDataUrl.value)
+        localStorage.setItem(`acadshield_pdf_name_${thesisId}`, selectedFile.value.name)
+      } catch (e) {
+        console.warn('PDF 存储失败:', e)
+      }
+    }
+
     message.success('论文提交成功！交易已上链')
     currentStep.value = 3
     selectedFile.value = null
+    pendingPdfDataUrl.value = null
     mockCID.value = ''
     await loadTheses()
   } catch (error) {

@@ -21,17 +21,25 @@
                 <RoleBadge :state="Number(record.state)" />
               </template>
               <template v-if="column.key === 'action'">
-                <a-button
-                  v-if="Number(record.state) === 1"
-                  type="primary"
-                  size="small"
-                  @click.stop="handleSelectThesis(record)"
-                >
-                  评审
-                </a-button>
-                <span v-else class="reviewed-text">
-                  {{ Number(record.state) === 4 ? '已驳回' : '已评审' }}
-                </span>
+                <a-space>
+                  <a-button
+                    v-if="Number(record.state) === 1"
+                    type="primary"
+                    size="small"
+                    @click.stop="handleSelectThesis(record)"
+                  >
+                    评审
+                  </a-button>
+                  <span v-else class="reviewed-text">
+                    {{ Number(record.state) === 4 ? '已驳回' : '已评审' }}
+                  </span>
+                  <a-button
+                    size="small"
+                    @click.stop="previewThesisId = record.id; previewVisible = true"
+                  >
+                    预览 PDF
+                  </a-button>
+                </a-space>
               </template>
             </template>
           </a-table>
@@ -44,6 +52,13 @@
               <h3>论文信息</h3>
               <p><strong>编号：</strong>{{ selectedThesis.id }}</p>
               <p><strong>CID：</strong><code class="mono">{{ selectedThesis.thesisCID }}</code></p>
+              <a-button
+                size="small"
+                style="margin-top: 8px"
+                @click="previewThesisId = selectedThesis.id; previewVisible = true"
+              >
+                预览 PDF
+              </a-button>
             </div>
 
             <div class="score-section">
@@ -122,6 +137,12 @@
       </div>
     </div>
   </div>
+
+  <PdfPreview
+    :visible="previewVisible"
+    :thesis-id="previewThesisId"
+    @close="previewVisible = false"
+  />
 </template>
 
 <script setup>
@@ -130,6 +151,7 @@ import { message } from 'ant-design-vue'
 import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
+import PdfPreview from '../components/PdfPreview.vue'
 
 const wallet = useWalletStore()
 
@@ -142,6 +164,9 @@ const loading = ref(false)
 const submitting = ref(false)
 const theses = ref([])
 const selectedThesis = ref(null)
+
+const previewVisible = ref(false)
+const previewThesisId = ref(null)
 const score = ref(80)
 const reviewText = ref('')
 const dimensions = ref({
@@ -152,9 +177,9 @@ const dimensions = ref({
 })
 
 const columns = [
-  { title: '编号', dataIndex: 'id', key: 'id', width: 80 },
-  { title: '论文 CID', dataIndex: 'thesisCID', key: 'thesisCID', ellipsis: true },
-  { title: '提交者', dataIndex: 'submitter', key: 'submitter', width: 150, ellipsis: true },
+  { title: '编号', dataIndex: 'id', key: 'id', width: 50 },
+  { title: '论文 CID', dataIndex: 'thesisCID', key: 'thesisCID', width: 150, ellipsis: true },
+  { title: '提交者', dataIndex: 'submitter', key: 'submitter', width: 120, ellipsis: true },
   { title: '状态', dataIndex: 'state', key: 'state', width: 100 },
   { title: '操作', key: 'action', width: 100 },
 ]
@@ -302,6 +327,45 @@ onMounted(() => {
 
 .thesis-list-section {
   margin-bottom: 32px;
+  overflow-x: auto;
+  width: 100%;
+  display: block;
+  -webkit-overflow-scrolling: touch;
+}
+
+.thesis-list-section :deep(.ant-table-container) {
+  overflow-x: visible;
+}
+
+.thesis-list-section :deep(.ant-table) {
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.thesis-list-section :deep(.ant-table-thead > tr > th) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 80px;
+}
+
+.thesis-list-section :deep(.ant-table-tbody > tr > td) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.thesis-list-section :deep(.ant-table-tbody > tr > td:first-child) {
+  max-width: 60px;
+}
+
+.thesis-list-section :deep(.ant-table-tbody > tr > td:nth-child(2)) {
+  max-width: 250px;
+}
+
+.thesis-list-section :deep(.ant-table-tbody > tr > td:nth-child(3)) {
+  max-width: 150px;
 }
 
 .review-panel {

@@ -175,9 +175,14 @@ const handleDisconnect = () => {
 
 .header-nav :deep(.ant-menu-item-selected) {
   color: #F5F1E8;
+  background-color: #1E3A8A !important;
 }
 
 .header-nav :deep(.ant-menu-item:hover) {
+  color: #F5F1E8;
+}
+
+.header-nav :deep(.ant-menu-item-active) {
   color: #F5F1E8;
 }
 

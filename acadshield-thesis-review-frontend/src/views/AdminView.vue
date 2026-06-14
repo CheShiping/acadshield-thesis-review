@@ -64,7 +64,10 @@
                   <a-button v-if="Number(record.state) === 1 || Number(record.state) === 2" danger size="small" @click="handleRejectById(record.id)" :loading="rejecting === record.id">
                     驳回
                   </a-button>
-                  <span v-else class="no-action">已完成</span>
+                  <a-button size="small" @click="previewThesisId = record.id; previewVisible = true">
+                    预览 PDF
+                  </a-button>
+                  <span v-if="Number(record.state) === 3 || Number(record.state) === 4" class="no-action">已完成</span>
                 </a-space>
               </template>
             </template>
@@ -188,6 +191,12 @@
       </a-tab-pane>
     </a-tabs>
   </div>
+
+  <PdfPreview
+    :visible="previewVisible"
+    :thesis-id="previewThesisId"
+    @close="previewVisible = false"
+  />
 </template>
 
 <script setup>
@@ -196,6 +205,7 @@ import { message } from 'ant-design-vue'
 import { gsap } from 'gsap'
 import { useWalletStore } from '../stores/wallet'
 import RoleBadge from '../components/RoleBadge.vue'
+import PdfPreview from '../components/PdfPreview.vue'
 
 const wallet = useWalletStore()
 
@@ -215,6 +225,9 @@ const busyAddress = ref(null)
 const busyRole = ref(null)
 const theses = ref([])
 const events = ref([])
+
+const previewVisible = ref(false)
+const previewThesisId = ref(null)
 
 const roleForm = ref({
   address: '',
