@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>AcadShield 产品宣传</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  background: #0F172A;
+  font-family: 'Inter', sans-serif;
+  color: #F5F1E8;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.scene.active { opacity: 1; }
+
+/* Scene 1: 品牌亮相 */
+.s1-brand {
+  flex-direction: column;
+  gap: 24px;
+}
+.s1-shield {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 140px;
+  font-weight: 900;
+  color: #F5F1E8;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: none;
+}
+.s1-shield.show {
+  animation: shieldIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes shieldIn {
+  to { opacity: 1; transform: scale(1); }
+}
+.s1-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.s1-title.show {
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s1-sub {
+  font-size: 20px;
+  color: #94A3B8;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s1-sub.show {
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+.s1-line {
+  width: 60px;
+  height: 3px;
+  background: #1E3A8A;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+}
+.s1-line.show {
+  animation: lineIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+@keyframes lineIn {
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+/* Scene 2: 痛点 */
+.s2-pain {
+  flex-direction: column;
+  gap: 40px;
+  padding: 0 120px;
+}
+.s2-header {
+  text-align: center;
+}
+.s2-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s2-header h2.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s2-items {
+  display: flex;
+  gap: 32px;
+  width: 100%;
+}
+.s2-item {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.s2-item.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s2-item .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.s2-item h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #F5F1E8;
+}
+.s2-item p {
+  font-size: 14px;
+  color: #94A3B8;
+  line-height: 1.6;
+}
+.s2-item .tag {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-red { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+.tag-yellow { background: rgba(234,179,8,0.15); color: #FDE68A; }
+.tag-purple { background: rgba(139,92,246,0.15); color: #C4B5FD; }
+
+/* Scene 3: 解决方案 */
+.s3-solution {
+  flex-direction: column;
+  gap: 48px;
+  padding: 0 100px;
+}
+.s3-header {
+  text-align: center;
+}
+.s3-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s3-header h2.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s3-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+.s3-step {
+  flex: 1;
+  max-width: 280px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.s3-step.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s3-step-num {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1E3A8A, #1E40AF);
+  color: #F5F1E8;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.s3-step h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.s3-step p {
+  font-size: 14px;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+.s3-step code {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #60A5FA;
+  background: rgba(96,165,250,0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.s3-arrow {
+  font-size: 28px;
+  color: #475569;
+  opacity: 0;
+}
+.s3-arrow.show {
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scene 4: 架构 */
+.s4-arch {
+  flex-direction: column;
+  gap: 40px;
+  padding: 0 80px;
+}
+.s4-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s4-header h2.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s4-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+.s4-layer {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 32px;
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.s4-layer.show {
+  animation: slideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideRight {
+  to { opacity: 1; transform: translateX(0); }
+}
+.s4-layer-frontend { background: rgba(30,58,138,0.2); border: 1px solid rgba(30,58,138,0.3); }
+.s4-layer-contract { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
+.s4-layer-storage { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+.s4-layer-label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 120px;
+}
+.s4-layer-items {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+.s4-layer-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.s4-connectors {
+  display: flex;
+  justify-content: center;
+  gap: 80px;
+  opacity: 0;
+}
+.s4-connectors.show {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s4-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #475569;
+  font-size: 12px;
+}
+.s4-connector-line {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, #475569, transparent);
+}
+
+/* Scene 5: 技术栈 */
+.s5-tech {
+  flex-direction: column;
+  gap: 40px;
+  padding: 0 100px;
+}
+.s5-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s5-header h2.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s5-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+.s5-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 28px 24px;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+.s5-card.show {
+  animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cardIn {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.s5-card-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.s5-card h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.s5-card p {
+  font-size: 13px;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+.s5-card code {
+  display: block;
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #60A5FA;
+  background: rgba(96,165,250,0.08);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+/* Scene 6: 结尾 */
+.s6-end {
+  flex-direction: column;
+  gap: 32px;
+}
+.s6-shield {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 100px;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.8);
+}
+.s6-shield.show {
+  animation: shieldIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.s6-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.s6-title.show {
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+.s6-subtitle {
+  font-size: 18px;
+  color: #94A3B8;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.s6-subtitle.show {
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+.s6-cta {
+  display: flex;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.s6-cta.show {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+}
+.s6-btn {
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.s6-btn-primary {
+  background: #1E3A8A;
+  color: #F5F1E8;
+}
+.s6-btn-secondary {
+  background: transparent;
+  color: #60A5FA;
+  border: 2px solid #1E3A8A;
+}
+
+/* 通用动画 */
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 进度条 */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1E3A8A, #60A5FA);
+  width: 0;
+  transition: width 0.3s linear;
+}
+
+/* 场景指示器 */
+.scene-dots {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+.scene-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+}
+.scene-dot.active {
+  background: #60A5FA;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* 水印 */
+.watermark {
+  position: absolute;
+  bottom: 20px;
+  right: 24px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.1em;
+  font-family: 'JetBrains Mono', monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- Scene 1: 品牌亮相 -->
+<div class="scene s1-brand active" id="scene1">
+  <div class="s1-shield" id="s1-shield">盾</div>
+  <div class="s1-line" id="s1-line"></div>
+  <div class="s1-title" id="s1-title">AcadShield</div>
+  <div class="s1-sub" id="s1-sub">可信毕设评审系统 · Trusted Thesis Review</div>
+</div>
+
+<!-- Scene 2: 痛点 -->
+<div class="scene s2-pain" id="scene2">
+  <div class="s2-header">
+    <h2 id="s2-title">传统毕设评审的三大痛点</h2>
+  </div>
+  <div class="s2-items">
+    <div class="s2-item" id="s2-item1">
+      <span class="icon">🕐</span>
+      <h3>时间篡改</h3>
+      <p>论文提交时间可被事后修改，导致学术争议无法溯源</p>
+      <span class="tag tag-red">信任缺失</span>
+    </div>
+    <div class="s2-item" id="s2-item2">
+      <span class="icon">📝</span>
+      <h3>评分不透明</h3>
+      <p>导师打分过程缺乏监督，评语易丢失，学生无法追溯</p>
+      <span class="tag tag-yellow">过程黑箱</span>
+    </div>
+    <div class="s2-item" id="s2-item3">
+      <span class="icon">🔓</span>
+      <h3>成绩可篡改</h3>
+      <p>教务处数据库存在被内部人员越权修改的风险</p>
+      <span class="tag tag-purple">数据脆弱</span>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 3: 解决方案 -->
+<div class="scene s3-solution" id="scene3">
+  <div class="s3-header">
+    <h2 id="s3-title">区块链赋能的可信评审流程</h2>
+  </div>
+  <div class="s3-flow">
+    <div class="s3-step" id="s3-step1">
+      <div class="s3-step-num">1</div>
+      <h3>学生提交</h3>
+      <p>论文上传 IPFS，获取唯一 CID，调用合约存证上链</p>
+      <code>submitThesis(cid)</code>
+    </div>
+    <div class="s3-arrow" id="s3-arrow1">→</div>
+    <div class="s3-step" id="s3-step2">
+      <div class="s3-step-num">2</div>
+      <h3>导师评审</h3>
+      <p>开放评审机制，评分与评语 CID 写入区块链</p>
+      <code>reviewThesis(id, score, cid)</code>
+    </div>
+    <div class="s3-arrow" id="s3-arrow2">→</div>
+    <div class="s3-step" id="s3-step3">
+      <div class="s3-step-num">3</div>
+      <h3>教务定稿</h3>
+      <p>一键锁定成绩，永久写入区块链，不可篡改</p>
+      <code>finalizeGrade(id)</code>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 4: 系统架构 -->
+<div class="scene s4-arch" id="scene4">
+  <div class="s4-header">
+    <h2 id="s4-title">三层分离架构</h2>
+  </div>
+  <div class="s4-layers">
+    <div class="s4-layer s4-layer-frontend" id="s4-ly1">
+      <div class="s4-layer-label">前端层</div>
+      <div class="s4-layer-items">
+        <div class="s4-layer-item">Vue 3</div>
+        <div class="s4-layer-item">Ant Design</div>
+        <div class="s4-layer-item">ethers.js</div>
+        <div class="s4-layer-item">GSAP</div>
+      </div>
+    </div>
+    <div class="s4-layer s4-layer-contract" id="s4-ly2">
+      <div class="s4-layer-label">合约层</div>
+      <div class="s4-layer-items">
+        <div class="s4-layer-item">Solidity</div>
+        <div class="s4-layer-item">OpenZeppelin</div>
+        <div class="s4-layer-item">AccessControl</div>
+        <div class="s4-layer-item">Hardhat</div>
+      </div>
+    </div>
+    <div class="s4-layer s4-layer-storage" id="s4-ly3">
+      <div class="s4-layer-label">存储层</div>
+      <div class="s4-layer-items">
+        <div class="s4-layer-item">IPFS（链下文件）</div>
+        <div class="s4-layer-item">Blockchain（链上凭证）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 5: 技术栈 -->
+<div class="scene s5-tech" id="scene5">
+  <div class="s5-header">
+    <h2 id="s5-title">核心特性</h2>
+  </div>
+  <div class="s5-grid">
+    <div class="s5-card" id="s5-c1">
+      <div class="s5-card-icon">🛡️</div>
+      <h3>RBAC 权限控制</h3>
+      <p>学生、导师、管理员三角色隔离，基于 OpenZeppelin AccessControl</p>
+      <code>STUDENT / REVIEWER / ADMIN</code>
+    </div>
+    <div class="s5-card" id="s5-c2">
+      <div class="s5-card-icon">🔄</div>
+      <h3>四状态状态机</h3>
+      <p>SUBMITTED → UNDER_REVIEW → FINALIZED，支持 REJECTED 终态</p>
+      <code>enum ThesisState { ... }</code>
+    </div>
+    <div class="s5-card" id="s5-c3">
+      <div class="s5-card-icon">📦</div>
+      <h3>链下存文件 · 链上存凭证</h3>
+      <p>论文 PDF 存 IPFS 获取 CID，CID 和元数据写入区块链</p>
+      <code>string thesisCID</code>
+    </div>
+    <div class="s5-card" id="s5-c4">
+      <div class="s5-card-icon">👥</div>
+      <h3>开放评审机制</h3>
+      <p>任意 REVIEWER_ROLE 可评审任意 SUBMITTED 论文，先到先得</p>
+      <code>first-come-first-served</code>
+    </div>
+    <div class="s5-card" id="s5-c5">
+      <div class="s5-card-icon">📊</div>
+      <h3>多次提交支持</h3>
+      <p>学生可提交多篇论文，每篇获得唯一 thesisId，全部链上可查</p>
+      <code>mapping(addr => uint256[])</code>
+    </div>
+    <div class="s5-card" id="s5-c6">
+      <div class="s5-card-icon">🧪</div>
+      <h3>完整测试覆盖</h3>
+      <p>19 个单元测试用例，覆盖正向/反向场景，全部通过</p>
+      <code>npx hardhat test ✓</code>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 6: 结尾 -->
+<div class="scene s6-end" id="scene6">
+  <div class="s6-shield" id="s6-shield">盾</div>
+  <div class="s6-title" id="s6-title">AcadShield</div>
+  <div class="s6-subtitle" id="s6-sub">把毕设评审写进不可篡改的区块</div>
+  <div class="s6-cta" id="s6-cta">
+    <button class="s6-btn s6-btn-primary">开始使用</button>
+    <button class="s6-btn s6-btn-secondary">查看文档</button>
+  </div>
+</div>
+
+<!-- 进度条 -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- 场景指示器 -->
+<div class="scene-dots" id="sceneDots">
+  <div class="scene-dot active" data-scene="1"></div>
+  <div class="scene-dot" data-scene="2"></div>
+  <div class="scene-dot" data-scene="3"></div>
+  <div class="scene-dot" data-scene="4"></div>
+  <div class="scene-dot" data-scene="5"></div>
+  <div class="scene-dot" data-scene="6"></div>
+</div>
+
+<!-- 水印 -->
+<div class="watermark">Created by Huashu-Design</div>
+
+<script>
+const scenes = [
+  { id: 'scene1', duration: 3000 },
+  { id: 'scene2', duration: 4000 },
+  { id: 'scene3', duration: 4500 },
+  { id: 'scene4', duration: 3500 },
+  { id: 'scene5', duration: 5000 },
+  { id: 'scene6', duration: 3000 },
+];
+
+let currentScene = 0;
+let isAnimating = false;
+
+function showScene(index) {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  // 隐藏所有场景
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+
+  // 更新指示器
+  document.querySelectorAll('.scene-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === index);
+  });
+
+  // 更新进度条
+  const progress = ((index + 1) / scenes.length) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+
+  // 显示目标场景
+  const scene = document.getElementById(scenes[index].id);
+  scene.classList.add('active');
+
+  // 触发场景内动画
+  setTimeout(() => {
+    triggerSceneAnimation(index);
+    isAnimating = false;
+  }, 100);
+}
+
+function triggerSceneAnimation(index) {
+  const scene = document.getElementById(scenes[index].id);
+  const animElements = scene.querySelectorAll('[id]');
+  animElements.forEach((el, i) => {
+    setTimeout(() => {
+      el.classList.add('show');
+    }, i * 150);
+  });
+}
+
+function nextScene() {
+  currentScene = (currentScene + 1) % scenes.length;
+  showScene(currentScene);
+}
+
+function autoPlay() {
+  showScene(0);
+  setInterval(() => {
+    nextScene();
+  }, scenes[currentScene].duration || 3500);
+}
+
+// 启动
+window.addEventListener('load', () => {
+  setTimeout(autoPlay, 500);
+});
+</script>
+</body>
+</html>
