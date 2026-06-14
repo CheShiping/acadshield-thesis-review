@@ -1,0 +1,18 @@
+{
+  "name": "acadshield-thesis-review-contract",
+  "version": "1.0.0",
+  "description": "AcadShield - Blockchain-based Thesis Review System Smart Contract",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "node": "npx hardhat node"
+  },
+  "devDependencies": {
+    "hardhat": "^2.19.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}

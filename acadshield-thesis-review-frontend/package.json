@@ -1,0 +1,22 @@
+{
+  "name": "acadshield-thesis-review-frontend",
+  "version": "1.0.0",
+  "description": "AcadShield - Blockchain-based Thesis Review System Frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ant-design-vue": "^4.1.0",
+    "@ant-design/web3": "^1.5.0",
+    "ethers": "^6.9.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "vite": "^5.0.0"
+  }
+}
